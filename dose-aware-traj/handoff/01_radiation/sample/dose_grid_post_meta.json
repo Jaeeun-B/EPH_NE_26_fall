@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0",
+  "grid_id": "sample_virtual_post",
+  "state": "post_removal",
+  "data_file": "dose_grid_post.npy",
+  "dtype": "float32",
+  "shape": [
+    50,
+    50,
+    50
+  ],
+  "axis_order": "xyz",
+  "sample_location": "node",
+  "origin": [
+    -0.8,
+    -1.0,
+    0.0
+  ],
+  "spacing": [
+    0.04081632653061224,
+    0.04081632653061224,
+    0.04081632653061224
+  ],
+  "frame": "hotcell_world",
+  "layout_version": "0.1-draft",
+  "quantity": "absorbed_dose_rate",
+  "medium": "Si",
+  "units": "Gy/h",
+  "shielding_included": false,
+  "sources": [
+    {
+      "id": "bed_B",
+      "kind": "line",
+      "start": [
+        0.5,
+        0.28,
+        0.07
+      ],
+      "end": [
+        0.5,
+        0.28,
+        0.43
+      ],
+      "strength": 0.5,
+      "note": "교체 중 운전을 이어가는 베드",
+      "r_min": 0.05
+    },
+    {
+      "id": "pipe_A",
+      "kind": "polyline",
+      "points": [
+        [
+          0.67,
+          -0.28,
+          0.4
+        ],
+        [
+          0.75,
+          -0.28,
+          0.4
+        ],
+        [
+          0.75,
+          -0.28,
+          1.1
+        ]
+      ],
+      "strength": 0.01,
+      "note": "격리된 Bed A 배관의 잔류 방사능",
+      "r_min": 0.05
+    },
+    {
+      "id": "pipe_B",
+      "kind": "polyline",
+      "points": [
+        [
+          0.67,
+          0.28,
+          0.4
+        ],
+        [
+          0.75,
+          0.28,
+          0.4
+        ],
+        [
+          0.75,
+          0.28,
+          1.1
+        ]
+      ],
+      "strength": 0.05,
+      "r_min": 0.05
+    },
+    {
+      "id": "header",
+      "kind": "line",
+      "start": [
+        0.75,
+        -0.28,
+        1.1
+      ],
+      "end": [
+        0.75,
+        0.28,
+        1.1
+      ],
+      "strength": 0.05,
+      "r_min": 0.05
+    },
+    {
+      "id": "outlet",
+      "kind": "line",
+      "start": [
+        0.75,
+        0.0,
+        1.1
+      ],
+      "end": [
+        1.2,
+        0.0,
+        1.1
+      ],
+      "strength": 0.05,
+      "r_min": 0.05
+    }
+  ],
+  "r_min": 0.05,
+  "version": "v0-virtual",
+  "created_by": "E part (virtual)",
+  "created_at": "2026-10-01 14:35",
+  "method": "analytic point/line kernel 1/r^2, no shielding (datraj.dose_model)",
+  "notes": "가상 선원. 절대값 의미 없음. 방사선 파트 격자로 교체 예정."
+}

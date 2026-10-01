@@ -1,0 +1,8 @@
+# Python 3.11 기준. Apple Silicon Mac은 SETUP.md의 conda 방법을 권장 (pybullet 미리 빌드된 패키지 사용)
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+pybullet>=3.2.5
+openpyxl>=3.1
+# 선택: 없으면 시간 매개변수화가 대체 방식(quintic)으로 동작하고 토크 제약은 사후 점검만 한다
+toppra>=0.6.0

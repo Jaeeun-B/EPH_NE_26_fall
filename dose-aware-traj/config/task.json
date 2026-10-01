@@ -1,0 +1,34 @@
+{
+  "version": "0.1",
+  "note": "베드 교체 작업 S1~S6 정의. 위치는 hotcell_layout.json의 task_sites에서 계산한다. 시간 값은 가정이며 공정 파트 값으로 교체.",
+  "home_q": [0.0, -0.1, 0.0, -1.7, 0.0, 1.4, 0.0],
+  "geometry": {
+    "approach_height": 0.15,
+    "lift_height": 0.15,
+    "disengage_lift": 0.01,
+    "place_clearance": 0.005
+  },
+  "timing": {
+    "S2_dwell": 60.0,
+    "S5_dwell": 60.0,
+    "grasp_dwell": 5.0,
+    "release_dwell": 5.0,
+    "fine_speed": 0.05,
+    "dt": 0.01
+  },
+  "planner": {
+    "seed": 1,
+    "rrt_step": 0.2,
+    "edge_resolution": 0.03,
+    "max_iter": 20000,
+    "time_limit": 60.0,
+    "shortcut_iters": 400,
+    "densify_step": 0.05
+  },
+  "ik_rest_candidates": [
+    [0.0, 0.4, 0.0, -1.4, 0.0, 1.3, 0.0],
+    [0.0, 0.2, 0.0, -1.7, 0.0, 1.2, 0.0],
+    [0.0, 0.6, 0.0, -1.1, 0.0, 1.4, 0.0],
+    [0.0, 0.0, 0.0, -1.9, 0.0, 1.2, 0.0]
+  ]
+}

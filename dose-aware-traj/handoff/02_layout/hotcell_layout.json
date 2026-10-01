@@ -1,0 +1,77 @@
+{
+  "layout_version": "0.1-draft",
+  "updated": "2026-09-27",
+  "status": "초안. 포스터 도면 치수가 확정되면 objects 값만 교체하고 layout_version을 올린다.",
+  "frame": {
+    "name": "hotcell_world",
+    "origin": "로봇 베이스 설치면 중심 (핫셀 바닥면 위, z=0)",
+    "x": "로봇에서 베드(Bed A/B) 쪽을 향하는 수평 방향",
+    "y": "x축에서 반시계 방향 90도 (위에서 볼 때 왼쪽)",
+    "z": "선체 경사 0도일 때 연직 위쪽",
+    "handedness": "오른손 좌표계",
+    "units": {
+      "length": "m",
+      "angle": "rad",
+      "mass": "kg",
+      "time": "s",
+      "dose_rate": "Gy/h",
+      "dose": "Gy"
+    },
+    "ship_axes": "선체 좌표계와 일치한다고 가정 (x: 선수 방향, y: 좌현 방향). 횡동요(roll)는 x축, 종동요(pitch)는 y축 회전."
+  },
+  "cell": {
+    "interior_min": [-0.8, -1.0, 0.0],
+    "interior_max": [1.2, 1.0, 2.0],
+    "wall_model_thickness": 0.05,
+    "note": "내부 공간만 모델링한다. 실제 벽 두께와 재질은 차폐 계산(방사선 파트)에서 따로 다룬다."
+  },
+  "robot": {
+    "model": "KUKA LBR iiwa 14 R820 (7축)",
+    "urdf": "pybullet_data/kuka_iiwa/model.urdf",
+    "base_position": [0.0, 0.0, 0.0],
+    "base_rpy": [0.0, 0.0, 0.0],
+    "note": "공구 길이, TCP, 질량 등 로봇 쪽 값은 shared_params.json에서 관리한다."
+  },
+  "bed_cartridge": {
+    "radius": 0.10,
+    "height": 0.40,
+    "handle_height": 0.03,
+    "source_inset": 0.02,
+    "assumption": "iiwa 14의 가반하중(14 kg)에 맞춘 축소 카트리지 (질량은 shared_params.json). 참고한 ORNL 활성탄 베드(직경 약 0.43 m, 길이 약 0.91 m, 활성탄 50~65 kg)는 가반하중과 도달거리를 모두 넘는다. 10/5 회의 안건."
+  },
+  "objects": [
+    {"id": "floor", "kind": "box", "center": [0.2, 0.0, -0.025], "half_extents": [1.0, 1.0, 0.025], "role": "structure"},
+    {"id": "wall_back", "kind": "box", "center": [1.225, 0.0, 1.0], "half_extents": [0.025, 1.0, 1.0], "role": "structure"},
+    {"id": "wall_rear", "kind": "box", "center": [-0.825, 0.0, 1.0], "half_extents": [0.025, 1.0, 1.0], "role": "structure"},
+    {"id": "wall_left", "kind": "box", "center": [0.2, 1.025, 1.0], "half_extents": [1.0, 0.025, 1.0], "role": "structure"},
+    {"id": "wall_right", "kind": "box", "center": [0.2, -1.025, 1.0], "half_extents": [1.0, 0.025, 1.0], "role": "structure"},
+
+    {"id": "bed_A_seat", "kind": "cylinder", "center": [0.50, -0.28, 0.025], "radius": 0.12, "height": 0.05, "role": "structure", "note": "Bed A 거치대. 교체 대상"},
+    {"id": "bed_B_seat", "kind": "cylinder", "center": [0.50, 0.28, 0.025], "radius": 0.12, "height": 0.05, "role": "structure", "note": "Bed B 거치대. 교체 중 운전 유지"},
+    {"id": "bed_B", "kind": "cylinder", "center": [0.50, 0.28, 0.25], "radius": 0.10, "height": 0.40, "role": "bed_online"},
+
+    {"id": "coupling_A", "kind": "box", "center": [0.635, -0.28, 0.40], "half_extents": [0.035, 0.035, 0.035], "role": "structure", "note": "Bed A 퀵커플링 (배관 쪽)"},
+    {"id": "coupling_B", "kind": "box", "center": [0.635, 0.28, 0.40], "half_extents": [0.035, 0.035, 0.035], "role": "structure"},
+    {"id": "pipe_A_h", "kind": "capsule_segment", "start": [0.67, -0.28, 0.40], "end": [0.75, -0.28, 0.40], "radius": 0.025, "role": "pipe"},
+    {"id": "pipe_A_v", "kind": "capsule_segment", "start": [0.75, -0.28, 0.40], "end": [0.75, -0.28, 1.10], "radius": 0.025, "role": "pipe"},
+    {"id": "pipe_B_h", "kind": "capsule_segment", "start": [0.67, 0.28, 0.40], "end": [0.75, 0.28, 0.40], "radius": 0.025, "role": "pipe"},
+    {"id": "pipe_B_v", "kind": "capsule_segment", "start": [0.75, 0.28, 0.40], "end": [0.75, 0.28, 1.10], "radius": 0.025, "role": "pipe"},
+    {"id": "header", "kind": "capsule_segment", "start": [0.75, -0.28, 1.10], "end": [0.75, 0.28, 1.10], "radius": 0.03, "role": "pipe"},
+    {"id": "outlet", "kind": "capsule_segment", "start": [0.75, 0.0, 1.10], "end": [1.20, 0.0, 1.10], "radius": 0.03, "role": "pipe"},
+
+    {"id": "cask_seat", "kind": "cylinder", "center": [-0.05, -0.55, 0.05], "radius": 0.18, "height": 0.10, "role": "structure", "note": "사용 후 베드 보관 캐스크 도킹부. 올려놓는 즉시 캐스크가 닫혀 차폐된다고 가정"},
+    {"id": "rack_seat", "kind": "cylinder", "center": [-0.05, 0.55, 0.05], "radius": 0.14, "height": 0.10, "role": "structure", "note": "신규 베드 거치대"}
+  ],
+  "movable": {
+    "spent_bed": {"initial_center": [0.50, -0.28, 0.25], "note": "Bed A 위치의 사용 후 베드"},
+    "new_bed": {"initial_center": [-0.05, 0.55, 0.30], "note": "거치대 위의 신규 베드"}
+  },
+  "task_sites": {
+    "bed_A_center": [0.50, -0.28, 0.25],
+    "cask_place_center": [-0.05, -0.55, 0.30],
+    "rack_center": [-0.05, 0.55, 0.30],
+    "coupling_disengage_dir": [-1.0, 0.0, 0.0],
+    "coupling_disengage_dist": 0.05,
+    "note": "베드 옆면 노즐이 +x쪽 커플링에 물려 있으므로, 해제 후 -x로 5 cm 뺀 다음 들어 올린다."
+  }
+}

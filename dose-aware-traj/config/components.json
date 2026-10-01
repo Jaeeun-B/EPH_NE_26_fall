@@ -1,0 +1,18 @@
+{
+  "version": "0.1",
+  "note": "선량 평가점 p_k. link는 pybullet 링크 인덱스(-1 = 베이스, j = A(j+1) 관절 링크), offset은 그 링크 좌표계 기준 위치[m]. 차폐 투과율 S_k와 TID_max는 소재 파트 입력(component_inputs.xlsx)으로 덮어쓴다.",
+  "N_ex_default": null,
+  "components": [
+    {"id": "C01", "name": "A1 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 0, "offset": [0, 0, 0]},
+    {"id": "C02", "name": "A2 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 1, "offset": [0, 0, 0]},
+    {"id": "C03", "name": "A3 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 2, "offset": [0, 0, 0]},
+    {"id": "C04", "name": "A4 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 3, "offset": [0, 0, 0]},
+    {"id": "C05", "name": "A5 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 4, "offset": [0, 0, 0]},
+    {"id": "C06", "name": "A6 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 5, "offset": [0, 0, 0]},
+    {"id": "C07", "name": "A7 구동부", "detail": "모터, 브레이크, 엔코더, 관절 토크센서", "group": "drive", "link": 6, "offset": [0, 0, 0]},
+    {"id": "C08", "name": "공구 구동부", "detail": "그리퍼·커플링 조작 액추에이터와 제어 보드 (플랜지 바로 앞)", "group": "tool", "link": 6, "offset": [0, 0, 0.075]},
+    {"id": "C09", "name": "손목 카메라", "detail": "작업 확인용 카메라 (공구 옆면)", "group": "sensor", "link": 6, "offset": [0.06, 0, 0.10]},
+    {"id": "C10", "name": "베이스 커넥터부", "detail": "전원·통신 케이블 인터페이스 (베이스 뒤쪽)", "group": "base", "link": -1, "offset": [-0.08, 0, 0.08]},
+    {"id": "P0", "name": "TCP (점 로봇 기준)", "detail": "부품이 아님. 점 로봇 가정과 비교하기 위한 기준점", "group": "reference", "link": 6, "offset": [0, 0, 0.145], "reference": true}
+  ]
+}

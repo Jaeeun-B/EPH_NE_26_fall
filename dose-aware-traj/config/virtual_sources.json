@@ -1,0 +1,20 @@
+{
+  "note": "가상 선원. 방사선 파트의 실제 격자가 오기 전까지 파이프라인을 돌리기 위한 값이며 절대값에는 의미가 없다. strength는 해당 선원 전체를 1 m 거리의 점선원으로 봤을 때의 선량률(Gy/h at 1 m)이다.",
+  "medium": "Si",
+  "r_min": 0.05,
+  "states": {
+    "pre_removal": ["bed_A", "bed_B", "pipe_A", "pipe_B", "header", "outlet"],
+    "post_removal": ["bed_B", "pipe_A", "pipe_B", "header", "outlet"]
+  },
+  "sources": [
+    {"id": "bed_A", "kind": "line", "start": [0.50, -0.28, 0.07], "end": [0.50, -0.28, 0.43], "strength": 1.0,
+     "note": "사용 후 베드. 베드 축을 따라 균일한 선선원으로 근사. S3에서는 로봇과 함께 이동한다."},
+    {"id": "bed_B", "kind": "line", "start": [0.50, 0.28, 0.07], "end": [0.50, 0.28, 0.43], "strength": 0.5,
+     "note": "교체 중 운전을 이어가는 베드"},
+    {"id": "pipe_A", "kind": "polyline", "points": [[0.67, -0.28, 0.40], [0.75, -0.28, 0.40], [0.75, -0.28, 1.10]], "strength": 0.01,
+     "note": "격리된 Bed A 배관의 잔류 방사능"},
+    {"id": "pipe_B", "kind": "polyline", "points": [[0.67, 0.28, 0.40], [0.75, 0.28, 0.40], [0.75, 0.28, 1.10]], "strength": 0.05},
+    {"id": "header", "kind": "line", "start": [0.75, -0.28, 1.10], "end": [0.75, 0.28, 1.10], "strength": 0.05},
+    {"id": "outlet", "kind": "line", "start": [0.75, 0.0, 1.10], "end": [1.20, 0.0, 1.10], "strength": 0.05}
+  ]
+}

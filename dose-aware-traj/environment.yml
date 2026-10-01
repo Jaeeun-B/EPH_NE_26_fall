@@ -1,0 +1,14 @@
+name: eph
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - matplotlib
+  - openpyxl
+  - pybullet
+  - cython
+  - pip
+  - pip:
+      - toppra

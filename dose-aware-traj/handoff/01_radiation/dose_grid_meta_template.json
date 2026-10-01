@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "grid_id": "rad_pre_v1",
+  "state": "pre_removal",
+  "data_file": "dose_grid_pre.npy",
+  "dtype": "float32",
+  "shape": [
+    100,
+    100,
+    100
+  ],
+  "axis_order": "xyz",
+  "sample_location": "node",
+  "origin": [
+    -0.8,
+    -1.0,
+    0.0
+  ],
+  "spacing": [
+    0.020202,
+    0.020202,
+    0.020202
+  ],
+  "frame": "hotcell_world",
+  "layout_version": "0.1-draft",
+  "quantity": "absorbed_dose_rate",
+  "medium": "Si",
+  "units": "Gy/h",
+  "shielding_included": false,
+  "sources": [
+    {
+      "id": "bed_A",
+      "kind": "line",
+      "start": [
+        0.5,
+        -0.28,
+        0.07
+      ],
+      "end": [
+        0.5,
+        -0.28,
+        0.43
+      ],
+      "strength": 0.0,
+      "nuclides": [
+        {
+          "name": "Kr-85",
+          "activity_Bq": 0.0
+        }
+      ],
+      "note": "strength = 1 m 거리 점선원으로 봤을 때의 선량률 [Gy/h]. 핵종 구성과 근거를 note에"
+    }
+  ],
+  "r_min": 0.05,
+  "version": "v1",
+  "created_by": "방사선 파트 (이름)",
+  "created_at": "YYYY-MM-DD HH:MM",
+  "method": "계산 방법 (예: 점커널 해석식, OpenMC 등)",
+  "notes": "가정, 교체 시점, 반영한 핵종, 제동복사 반영 여부 등"
+}
