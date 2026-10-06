@@ -26,7 +26,9 @@ datraj/                 코드
   results.py, viz.py      평가 지표, CSV 저장, 그림, GUI 재생
 scripts/                실행 스크립트 (번호 순서대로)
 handoff/                다른 파트에 넘기는 양식과 파일 (각 폴더 README 참고)
-docs/                   분석 문서와 그림
+docs/                   분석 문서, 결정 기록(adr/), 불변식, 실행 기록
+refs/                   참고문헌 PDF와 정리 노트 (PDF는 git 제외)
+CLAUDE.md, .claude/     Claude Code 설정 (docs/claude-code-setup.md 참고)
 data/dose_grids/        선량 격자 (생성물, git 제외)
 outputs/                결과 (생성물, git 제외)
 ```
@@ -70,6 +72,17 @@ outputs/                결과 (생성물, git 제외)
 - 운반 중 공구를 기울이면 A6가 먼저 한계에 닿아서, 운반 구간 탐색에서 정적 토크 초과 자세를 아예 제외함.
 
 **시사점**: 지금 가정(체류 60 s, 근접 구간 5 cm/s)에서는 경로 선택(P1, P2)보다 체류·근접 구간의 작업 자세(P3)와 근접 구간 속도가 선량을 좌우합니다. 체류 시간과 근접 속도는 공정·제어 파트 값으로 바꾼 뒤 다시 확인해야 합니다.
+
+## 문서
+
+| 문서 | 내용 |
+|---|---|
+| [docs/2026-10-02_baseline_analysis.md](docs/2026-10-02_baseline_analysis.md) | B0·B1 기준선 분석 |
+| [docs/2026-10-06_진행공유.md](docs/2026-10-06_진행공유.md) | 팀 공유용 진행 상황과 파트별 요청값 |
+| [docs/invariants.md](docs/invariants.md) | 항상 성립해야 하는 물리·수치 조건 |
+| [docs/adr/](docs/adr/) | 결정 기록. 왜 그렇게 정했고 무엇을 버렸는지 |
+| [docs/run_log.md](docs/run_log.md) | 실행할 때마다의 설정과 핵심 수치 |
+| [docs/claude-code-setup.md](docs/claude-code-setup.md) | VS Code에서 Claude Code로 이 저장소 다루는 법 |
 
 ## 다음 단계
 

@@ -1,0 +1,32 @@
+{
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.DS_Store": true
+  },
+  "search.exclude": {
+    "outputs/**": true,
+    "data/dose_grids/**": true,
+    "handoff/**/sample/**": true,
+    "refs/*.pdf": true
+  },
+  "files.associations": {
+    "CLAUDE.md": "markdown",
+    ".claude/agents/*.md": "markdown",
+    ".claude/commands/*.md": "markdown"
+  },
+  "python.analysis.extraPaths": ["."],
+  "python.terminal.activateEnvironment": true,
+  "[python]": {
+    "editor.rulers": [120],
+    "editor.tabSize": 4
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    }
+  },
+  "claudeCode.respectGitIgnore": true
+}
