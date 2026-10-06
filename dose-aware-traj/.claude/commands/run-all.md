@@ -19,6 +19,7 @@ python scripts/05_solve_waypoints.py
 python scripts/06_run_b0.py
 python scripts/07_run_b1.py
 python scripts/08_payload_check.py
+python scripts/09_seed_sweep_b0.py
 ```
 
 `$1`이 `grid`면 `06`, `07`에 `--field grid --N 100`을 붙입니다. `--gui`는 붙이지 마세요. 창이 떠서 멈춥니다.

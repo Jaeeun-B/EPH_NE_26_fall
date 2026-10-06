@@ -1,6 +1,7 @@
 """그림 공통 스타일 (matplotlib). 색은 단일 팔레트에서 역할별로 가져다 쓴다."""
 from __future__ import annotations
 
+import math
 import warnings
 
 import matplotlib
@@ -66,3 +67,27 @@ def apply() -> None:
         "savefig.bbox": "tight",
     })
     warnings.filterwarnings("ignore", message=".*Glyph.*missing.*")
+
+
+_SUP = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
+
+
+def log_axis(ax, which: str = "y") -> None:
+    """로그축으로 바꾸고 눈금을 10ⁿ 일반 텍스트로 쓴다.
+
+    기본 눈금은 mathtext로 그려지는데, 한글 글꼴에 U+2212(빼기)가 없으면
+    10⁻¹이 네모로 깨진다(mathtext는 font.family의 대체 글꼴을 쓰지 않음).
+    일반 텍스트는 font.family 목록의 DejaVu Sans로 넘어가므로 깨지지 않는다.
+    """
+    from matplotlib.ticker import FuncFormatter, NullFormatter
+
+    def fmt(v, _pos):
+        if v <= 0:
+            return ""
+        e = math.log10(v)
+        return "10" + str(round(e)).translate(_SUP) if abs(e - round(e)) < 1e-9 else ""
+
+    axis = ax.yaxis if which == "y" else ax.xaxis
+    (ax.set_yscale if which == "y" else ax.set_xscale)("log")
+    axis.set_major_formatter(FuncFormatter(fmt))
+    axis.set_minor_formatter(NullFormatter())

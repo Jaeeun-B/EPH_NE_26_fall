@@ -108,7 +108,7 @@ def trajectory_figures(E, segs, comps, scene, fields, out: Path, tag: str) -> No
                 ax.axvspan(t0, t1, color=viz_style.GRID, alpha=0.45, lw=0)
     for k, name, col in show:
         a1.plot(E.t, np.maximum(E.rates[:, k], 1e-6), color=col, lw=1.4, label=name)
-    a1.set_yscale("log")
+    viz_style.log_axis(a1, "y")
     a1.set_ylabel("선량률 [Gy/h]")
     a1.legend(loc="upper right", fontsize=8)
     ymax = a1.get_ylim()[1]
