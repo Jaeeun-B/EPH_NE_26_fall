@@ -62,6 +62,7 @@ python scripts/00_check_env.py
 | `10_export_handoff.py` | 06 | `handoff/` 인계 파일 생성 |
 | `11_xe_bed_budget.py` | | Xe 이중베드: 교체 주기, 부품 예산, 필요 차폐, 모듈 질량 (MARINA 식 상한 선원) |
 | `12_heavy_robot_check.py` | `data/robots/` 모델 | KUKA KR 120/210/300 경사 포락선 허용 하중 |
+| `notebooks/demo_walkthrough.ipynb` | | 시연용 노트북. B0를 다시 계산해 `outputs/demo/`에 저장 (`outputs/b0`는 건드리지 않음) |
 
 `06`, `07`에 `--field grid --N 100`을 주면 격자 경로, 기본값 `--field model`은 해석식 경로입니다.
 
