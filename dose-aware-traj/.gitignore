@@ -18,6 +18,7 @@ data/dose_grids/*_quicklook.png
 data/dose_grids/*_meta.json
 !data/dose_grids/README.md
 handoff/**/__pycache__/
+data/robots/
 
 # 참고문헌 PDF (저작권. 정리 노트만 커밋한다)
 refs/*.pdf

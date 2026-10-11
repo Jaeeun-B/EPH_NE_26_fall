@@ -10,6 +10,9 @@
 | [0002](0002-reduced-bed-cartridge.md) | 베드를 축소 카트리지(9 kg)로 가정한다 | accepted | 2026-09-27 |
 | [0003](0003-ship-inclination-envelope.md) | 선박 경사 조건을 46 CFR 58.01-40로 준용한다 | accepted | 2026-09-27 |
 | [0004](0004-toppra-time-parameterization.md) | 시간 배정에 TOPP-RA를 쓰고 토크를 제약으로 넣는다 | accepted | 2026-09-30 |
+| [0005](0005-xe-dual-bed-source.md) | 타겟을 Xe 하나로 두고 MARINA 식 Xe 선원 상한으로 교체 조건을 계산한다 | accepted | 2026-10-11 |
+| [0006](0006-inclination-urm46.md) | 경사 조건에 UR M46 정적 종경사를 더할지 | proposed | 2026-10-11 |
+| [0007](0007-heavy-robot-candidates.md) | iiwa 14를 내리고 KR 120/210/300을 후보로 계산한다 | proposed | 2026-10-11 |
 
 ## 상태의 뜻
 

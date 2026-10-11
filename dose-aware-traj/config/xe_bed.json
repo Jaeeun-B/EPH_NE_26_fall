@@ -1,0 +1,92 @@
+{
+  "version": "0.1",
+  "updated": "2026-10-11",
+  "status": "가정 묶음. 10/6 회의 결정(Xe 단일 타겟, 이중베드 유지)을 계산에 넣기 위한 값이다. 출처가 있는 값과 팀 가정을 구분해 둔다. 방사선·공정 파트 값이 오면 교체한다.",
+
+  "source_term": {
+    "note": "MARINA spec 유도값 시트의 식 A = F·Y·ε·exp(-λ t_d)·(1 - exp(-λ T_on)) 를 그대로 쓴다. 포집 베드이므로 T_hold 자리에 베드 운전시간 T_on을 넣는다. 교체 시점 재고는 A·exp(-λ t_c).",
+    "P_th_MW": 100.0,
+    "E_f_MeV": 200.0,
+    "eps": 1.0,
+    "t_d_h": 2.0,
+    "source": "MARINA spec (팀 내부 자료, 2026-10-06 수신) 유도값 시트. P_th는 공개값, 나머지는 가정(ε = 1은 상한, t_d는 MSRE 설계값)",
+    "nuclides": [
+      {"id": "Xe-133m", "T_half_s": 189216.0, "yield_pct": 0.19,
+       "lines": [[233.2, 0.10]]},
+      {"id": "Xe-133", "T_half_s": 453000.0, "yield_pct": 6.7,
+       "lines": [[81.0, 0.37]]},
+      {"id": "Xe-135", "T_half_s": 32904.0, "yield_pct": 6.54,
+       "lines": [[249.8, 0.90], [608.2, 0.029]]}
+    ],
+    "nuclide_note": "반감기·수율·감마선은 spec 표의 값(수율은 U-235 열중성자 값과 일치, refs/notes/08). 감마선은 서현 10/6 자료(NNDC 기반)와 대조해 일치. Xe-131m, Xe-135m, Cs 특성 X선은 넣지 않았다."
+  },
+
+  "sorbent": {
+    "K_ref_cm3_per_g": 1090.0,
+    "K_ref_T_C": 25.0,
+    "K_ref_source": "KAERI Hong 2023 IAEA 발표 slide 10: Nucon 활성탄 44 mmol/kg (25 °C, 1000 ppm Xe). 이를 Henry 상수(기상 실부피 기준)로 환산한 값 (refs/notes/10)",
+    "T_dependence": "Ackley & Browning, ORNL-4541 p.103: k ∝ exp(5880 / T[°R]). 기준값에 비율로만 쓴다",
+    "dynamic_fraction": 0.8,
+    "dynamic_fraction_source": "KAERI Hong 2023 slide 11: 'Dynamic adsorption capacity ~80% of capacity from isotherm' (C/C0 = 0.005 기준)",
+    "holdup_relation": "Underhill 2003, Nucl. Sci. Eng. 144:258, 식 (2) p.259: t0 = K·M/Q. 희박 영역에서는 파과 시점이 C0와 무관",
+    "packing_density_g_cm3": 0.6,
+    "packing_density_source": "KAERI Hong 2023 slide 9",
+    "Q_He_STP_L_min": 50.0,
+    "Q_source": "가정. MARINA spec Q_He (MSRE 유량의 출력비 선형 확대). MSRE 실측 4.2 L/min (ORNL-4037 p.45)"
+  },
+
+  "module": {
+    "aspect_H_over_D": 3.0,
+    "aspect_note": "가정. KAERI 실험 컬럼은 H/D = 12(300/25 mm)지만 로봇이 다룰 모듈은 짧고 굵게 둔다",
+    "vessel_wall_m": 0.005,
+    "vessel_density_kg_m3": 7900.0,
+    "vessel_note": "가정. 스테인리스 용기 5 mm. 차폐 계산에서는 용기 감쇠를 넣지 않는다(보수적)",
+    "shield_materials": {
+      "Pb": {"density_g_cm3": 11.35},
+      "W":  {"density_g_cm3": 19.3}
+    },
+    "buildup_factor": 1.0,
+    "buildup_note": "좁은 빔 감쇠 exp(-μx)만 쓴다. 빌드업을 넣으면 필요한 두께가 늘어난다. 방사선 파트 확인 필요"
+  },
+
+  "attenuation_nist": {
+    "source": "NIST XCOM/X-ray mass attenuation tables (Hubbell & Seltzer), physics.nist.gov/PhysRefData/XrayMassCoef/ElemTab z14, z74, z82. 2026-10-11 조회",
+    "energy_MeV": [0.05, 0.06, 0.08, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.60, 0.80, 1.00],
+    "Si_mu_en": [0.2430, 0.1434, 0.06896, 0.04513, 0.03086, 0.02905, 0.02932, 0.02968, 0.02971, 0.02951, 0.02875, 0.02778],
+    "Pb_mu": [8.041, 5.021, 2.419, 5.549, 2.014, 0.9985, 0.4031, 0.2323, 0.1614, 0.1248, 0.08870, 0.07102],
+    "Pb_K_edge_MeV": 0.0880045,
+    "Pb_mu_below_edge": 1.910,
+    "Pb_mu_above_edge": 7.683,
+    "W_mu": [5.949, 3.713, 7.810, 4.438, 1.581, 0.7844, 0.3238, 0.1925, 0.1378, 0.1093, 0.08066, 0.06618],
+    "W_K_edge_MeV": 0.069525,
+    "W_mu_below_edge": 2.552,
+    "W_mu_above_edge": 11.23,
+    "unit": "cm2/g"
+  },
+
+  "budget": {
+    "RDM": 2.0,
+    "RDM_source": "서현 10/6 자료: TID_lim = 문헌 고장선량 / RDM, RDM = 2",
+    "life_EFPY": 27.0,
+    "life_source": "MARINA spec No.19 (가정: 설계수명 30년 × 이용률 90%)",
+    "TID_fail_Gy": {
+      "C01": 164.55, "C02": 164.55, "C03": 164.55, "C04": 164.55, "C05": 164.55, "C06": 164.55, "C07": 164.55,
+      "C08": 219.0,
+      "C09": 120.0,
+      "C10": null
+    },
+    "TID_fail_note": "C01~C07: KUKA iiwa 7 관절 7 광학 엔코더 고장 164.55 Gy (Zhang et al. 2020, Table 2)를 모든 관절에 적용한 가정. C08: 일반 MCU 219~287 Gy의 하한 (Coloma et al. 2023, 서현 표). C09: 일반 카메라 약 120 Gy (서현 표, 원출처 Nagatani 2011 재인용). C10: 케이블·커넥터는 반도체보다 훨씬 강해 값 미정(소재 파트 확인 필요)으로 제외"
+  },
+
+  "robots": {
+    "note": "정격 가반하중은 제조사 값(경사 미반영). envelope_kg는 경사 포락선 7조건, 토크 상한 0.8에서 허용되는 최대 질량. iiwa 14는 08_payload_check.py, KR은 12_heavy_robot_check.py(2026-10-11, 플랜지 수평거리 1.2~2.4 m 자세 중 최악, 대부분 A2가 제한) 결과. 실제 쓸 수 있는 값은 정격과 envelope 중 작은 값",
+    "candidates": [
+      {"id": "iiwa14", "name": "KUKA LBR iiwa 14 R820", "rated_kg": 14.0, "reach_m": 0.82, "envelope_kg": 17.1,
+       "note": "17.1 kg는 토크 상한 기준 계산값이고 제조사 정격(14 kg)보다 크다. 실제 한계는 둘 중 작은 14 kg"},
+      {"id": "kr120", "name": "KUKA KR 120 R2700-2", "rated_kg": 120.0, "reach_m": 2.701, "envelope_kg": 137.2},
+      {"id": "kr210", "name": "KUKA KR 210 R2700-2", "rated_kg": 210.0, "reach_m": 2.701, "envelope_kg": 148.3},
+      {"id": "kr300", "name": "KUKA KR 300 R2700-2", "rated_kg": 300.0, "reach_m": 2.701, "envelope_kg": 145.0}
+    ],
+    "source": "KUKA 제품 페이지 (refs/notes/12). iiwa 정격 14 kg"
+  }
+}

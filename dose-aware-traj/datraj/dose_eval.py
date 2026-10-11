@@ -71,12 +71,13 @@ class SumField(DoseField):
         return sum(f.rate(P, tcp_pos, tcp_R, t) for f in self.fields)
 
 
-def build_fields(mode: str = "model", N: int = 100, grid_dir=None) -> dict[str, DoseField]:
+def build_fields(mode: str = "model", N: int = 100, grid_dir=None, sources=None) -> dict[str, DoseField]:
     """구간별 선량장.
 
     mode = "model": 가상 선원 해석식 (격자 보간 오차 없음)
     mode = "grid" : data/dose_grids 의 격자 (방사선 파트 격자로 교체하는 경로)
     반환 키: pre (Bed A 있음), post (Bed A 제거), carry_spent (post + 들고 가는 Bed A)
+    sources: mode="model"일 때 쓸 선원 설정(dict 또는 json 경로). 없으면 config/virtual_sources.json
     """
     layout = config.layout()
     bed = layout["bed_cartridge"]
@@ -92,7 +93,7 @@ def build_fields(mode: str = "model", N: int = 100, grid_dir=None) -> dict[str, 
         f_pre, f_post = GridField(pre), GridField(post)
         carried = sources_from_dicts(bedA, pre.meta.get("r_min", 0.05))
     else:
-        vs = config.virtual_sources()
+        vs = sources if isinstance(sources, dict) else config.virtual_sources(sources)
         by_id = {s["id"]: s for s in vs["sources"]}
         mk = lambda ids: sources_from_dicts([by_id[i] for i in ids], vs["r_min"])  # noqa: E731
         f_pre = SourceField(mk(vs["states"]["pre_removal"]), "model:pre")
