@@ -243,7 +243,7 @@ def plot(rows, robots, path):
             ax.text(0.26, cap * (0.80 if crowded else 1.07), " / ".join(n for n, _ in items) + f" ({cap:g} kg)",
                     fontsize=7, color="0.35")
         ax.set_xscale("log")
-        ax.set_yscale("log")
+        viz_style.log_axis(ax, "y")
         ax.set_xticks(T_ON_DAYS)
         ax.set_xticklabels([f"{t:g}" for t in T_ON_DAYS])
         ax.set_xlabel("베드 운전시간 T_on (= 교체 간격) [일]")
