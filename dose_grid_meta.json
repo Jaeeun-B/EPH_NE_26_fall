@@ -1,0 +1,53 @@
+{
+  "quantity": "air-kerma rate (Gy/h); multiply by Si_over_air for Si TID rate",
+  "shape_ijk": [
+    80,
+    80,
+    104
+  ],
+  "index_order": "dose[ix, iy, iz]",
+  "voxel_size_m": 0.05,
+  "voxel_center_m": "x = (ix + 0.5)*0.05, same for y, z; origin = cell floor corner, z up",
+  "cell_m_nominal": [
+    3.96,
+    3.96,
+    5.18
+  ],
+  "grid_extent_m": [
+    4.0,
+    4.0,
+    5.2
+  ],
+  "bed": {
+    "shape": "vertical cylinder, uniform activity",
+    "center_xy_m": [
+      2.0,
+      1.0
+    ],
+    "radius_m": 0.25,
+    "z0_m": 0.0,
+    "height_m": 1.5,
+    "status": "PROVISIONAL"
+  },
+  "source": {
+    "nuclide": "Xe-135",
+    "A_bed_eps1_Bq": 1.75375e+17,
+    "eps": 1.0,
+    "t_c_h": 0.0,
+    "A_exchange_Bq": 1.75375e+17,
+    "Gamma_Gy_m2_per_Bq_s": 9.05326e-18
+  },
+  "scaling": "dose(eps, t_c) = dose_grid * (eps/1) * exp(-ln2*(t_c_h-0)/9.14)",
+  "Si_over_air": {
+    "E>=50keV": 1.046,
+    "all_photons": 1.24
+  },
+  "assumptions": [
+    "no self-shielding / vessel wall (conservative)",
+    "air attenuation and buildup neglected (<0.3 %)",
+    "no wall/floor scatter (non-conservative, few %)",
+    "Xe-135 only: valid for t_c <~ 12 h (Xe-133 takes over later)",
+    "voxels inside bed_mask are inside the source: not physical robot positions"
+  ],
+  "max_outside_bed_Gy_h": 40889.67344385768
+}
