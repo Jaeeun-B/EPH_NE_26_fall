@@ -66,36 +66,13 @@ def unit_doses(scene, segs, comps):
     return out
 
 
-def main():
-    cfg = X.load()
-    out = OUTPUTS / "xe_bed"
-    out.mkdir(parents=True, exist_ok=True)
-    comps, _ = load_components()
-    real = [k for k, c in enumerate(comps) if not c.reference]
-    ids = [comps[k].id for k in real]
+def scenario_rows(cfg, dA, dB, tid_lim, life_s, conditions=CONDITIONS, t_on_days=T_ON_DAYS, t_c_days=T_C_DAYS,
+                  b_fixed_opts=(False, True), c2=True):
+    """시나리오 표 (C1 포집 후 교체, C2 드문 교체). dA, dB: 실제 부품의 단위 선량 [Gy per Gy/h@1m].
+
+    16_design_to_shield.py가 설계 방식별 단위 선량으로 같은 표를 다시 풀 때도 쓴다 (조건, 간격을 좁혀서 촘촘히 풀 때는 인자로).
+    """
     bud = cfg["budget"]
-    fail = np.array([bud["TID_fail_Gy"].get(i) if bud["TID_fail_Gy"].get(i) is not None else np.nan for i in ids], float)
-    tid_lim = fail / bud["RDM"]
-    life_s = bud["life_EFPY"] * 365.25 * DAY
-
-    # 1) B0 궤적과 단위 선량
-    task = config.task_config()
-    scene = Scene()
-    solved = solve_chain(scene, task)
-    segs = build_trajectory(scene, solved, make_rrt_planner(task), task)
-    U = unit_doses(scene, segs, comps)
-    dA, dB = U["bed_A"]["total"][real], U["bed_B"]["total"][real]
-    T_ex = sum(s.traj.duration for s in segs)
-    with open(out / "unit_dose.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        w.writerow(["component", "name", "d_bedA_Gy_per_GyPerHourAt1m", "d_bedB", "bedA_dwell_share", "TID_lim_Gy"])
-        for j, k in enumerate(real):
-            byk = U["bed_A"]["by_kind"]
-            share = byk["dwell"][k] / U["bed_A"]["total"][k] if U["bed_A"]["total"][k] > 0 else float("nan")
-            w.writerow([comps[k].id, comps[k].name, f"{dA[j]:.6e}", f"{dB[j]:.6e}", f"{share:.3f}",
-                        "" if math.isnan(tid_lim[j]) else f"{tid_lim[j]:.2f}"])
-
-    # 2) 시나리오 표
     #   C1 포집 후 교체: 파과 시점마다 교체. T_on = 파과시간, N_ex = 수명 / T_on, 운전 중 베드 B는 전환 후 t_c 동안 쌓인 재고
     #   C2 드문 교체: 재생(PSA 등) 또는 지연베드로 운전하고 흡착제 수명 끝에만 교체. 재고는 지연베드 정상상태(T_hold 90 d)
     #   B_fixed: 운전 중인 베드 B를 고정 차폐벽이 가린다고 보면 B 기여를 0으로 둔다
@@ -146,23 +123,58 @@ def main():
                 "robots_ok_yearly_parts": " ".join(oky),
             })
 
-    for cname, TC, Pbar in CONDITIONS:
-        for Ton_d in T_ON_DAYS:
+    for cname, TC, Pbar in conditions:
+        for Ton_d in t_on_days:
             Ton = Ton_d * DAY
             m = X.sorbent_mass_kg(cfg, Ton, TC, Pbar)
-            for tc_d in T_C_DAYS:
+            for tc_d in t_c_days:
                 if tc_d >= Ton_d:   # 베드 B가 파과되기 전에 냉각과 교체를 끝내야 한다
                     continue
-                for b_fixed in (False, True):
+                for b_fixed in b_fixed_opts:
                     add_row("C1 포집 후 교체", cname, TC, Pbar, Ton_d, tc_d, life_s / Ton, m,
                             X.bed_activity(cfg, Ton, tc_d * DAY), X.online_bed_activity(cfg, tc_d * DAY), b_fixed)
     T_hold = 90 * DAY
-    for cname, TC, Pbar in CONDITIONS:
+    for cname, TC, Pbar in (CONDITIONS if c2 else []):
         m = X.sorbent_mass_kg(cfg, T_hold, TC, Pbar)
         for interval_y in SERVICE_YEARS:
             for tc_d in (7, 30, 90):
                 add_row("C2 드문 교체", cname, TC, Pbar, interval_y * 365.25, tc_d, bud["life_EFPY"] / interval_y, m,
                         X.bed_activity(cfg, T_hold, tc_d * DAY), X.bed_activity(cfg, T_hold, 0.0), True)
+
+    return rows
+
+
+def main():
+    cfg = X.load()
+    out = OUTPUTS / "xe_bed"
+    out.mkdir(parents=True, exist_ok=True)
+    comps, _ = load_components()
+    real = [k for k, c in enumerate(comps) if not c.reference]
+    ids = [comps[k].id for k in real]
+    bud = cfg["budget"]
+    fail = np.array([bud["TID_fail_Gy"].get(i) if bud["TID_fail_Gy"].get(i) is not None else np.nan for i in ids], float)
+    tid_lim = fail / bud["RDM"]
+    life_s = bud["life_EFPY"] * 365.25 * DAY
+
+    # 1) B0 궤적과 단위 선량
+    task = config.task_config()
+    scene = Scene()
+    solved = solve_chain(scene, task)
+    segs = build_trajectory(scene, solved, make_rrt_planner(task), task)
+    U = unit_doses(scene, segs, comps)
+    dA, dB = U["bed_A"]["total"][real], U["bed_B"]["total"][real]
+    T_ex = sum(s.traj.duration for s in segs)
+    with open(out / "unit_dose.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["component", "name", "d_bedA_Gy_per_GyPerHourAt1m", "d_bedB", "bedA_dwell_share", "TID_lim_Gy"])
+        for j, k in enumerate(real):
+            byk = U["bed_A"]["by_kind"]
+            share = byk["dwell"][k] / U["bed_A"]["total"][k] if U["bed_A"]["total"][k] > 0 else float("nan")
+            w.writerow([comps[k].id, comps[k].name, f"{dA[j]:.6e}", f"{dB[j]:.6e}", f"{share:.3f}",
+                        "" if math.isnan(tid_lim[j]) else f"{tid_lim[j]:.2f}"])
+
+    # 2) 시나리오 표 (scenario_rows 설명 참고)
+    rows = scenario_rows(cfg, dA, dB, tid_lim, life_s)
 
     with open(out / "budget_table.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
@@ -185,7 +197,7 @@ def main():
     with open(out / "summary_xe_bed.json", "w", encoding="utf-8") as f:
         json.dump(summ, f, ensure_ascii=False, indent=2)
 
-    plot(rows, robots, out / "xe_bed_budget.png")
+    plot(rows, cfg["robots"]["candidates"], out / "xe_bed_budget.png")
     print_summary(rows, summ)
     print(f"\n출력 폴더: {out}")
 

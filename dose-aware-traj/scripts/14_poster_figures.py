@@ -1,14 +1,15 @@
 """포스터(E 파트 패널)용 수치와 그림.
 
-전제: 06, 07, 11, 13을 먼저 실행 (outputs/b0, b1, p3, xe_bed)
+전제: 06, 07, 11, 13, 15, 16을 먼저 실행 (outputs/b0, b1, p3, xe_bed, camera, design)
 하는 일
 1) B0, B1, P3 궤적 CSV에서 부품별 선량을 구간 종류(체류, 근접 직선, 경로계획)별로 다시 적분
    (dose_by_component_*.csv 합계와 일치하는지 확인)
-2) 민감도: 손목 카메라(C09) 장착 위치를 공구 축 방향으로 뒤로 옮길 때 C09 선량 (B0 궤적 고정)
-3) 포스터 그림 3장 (PNG 300 dpi + PDF)
+2) 카메라 장착 위치: 15에서 찾은 장착 가능 위치로 C09를 옮겨 같은 방식으로 다시 적분
+3) 포스터 그림 3장 (PNG 300 dpi + PDF + SVG)과 장면 그림
    fig1_component_dose: 부품별 누적선량 (C09 = 1 상대값), 구간 종류별 누적 막대 + TCP
-   fig2_levers: B0 대비 변화율 (경로 B1, 자세 P3, 카메라 위치)
-   fig3_exchange: Xe 베드 교체 모듈 질량 대 교체 간격, 로봇 허용 하중
+   fig2_levers: B0 대비 변화율 (경로 B1, 자세 P3, 카메라 장착 위치, P3 + 카메라)
+   fig3_exchange: 설계 방식별 교체 모듈 질량 대 교체 간격 (16), 로봇 허용 하중
+   scene_dwell: S2 체류 자세(P3)와 카메라 현재 위치·변경 위치
 
 실행: python scripts/14_poster_figures.py
 출력: outputs/poster/
@@ -27,8 +28,8 @@ from datraj.scene import Scene
 from datraj.task import apply_state, task_steps
 
 OUT = OUTPUTS / "poster"
-KINDS = [("dwell", "체류 (해제·체결·파지)"), ("line", "베드 근처 직선 (5 cm/s)"), ("plan", "경로계획 구간")]
-CAM_SHIFTS = [0.0, 0.10, 0.20]   # C09를 공구 축 방향으로 뒤로 옮기는 거리 [m]
+KINDS = [("dwell", "Dwell (unlock, lock, grasp)"), ("line", "Near-bed moves (5 cm/s)"),
+         ("plan", "Planned transfers")]
 
 
 def load_traj(tag):
@@ -80,20 +81,16 @@ def main():
         seg_dose[tag] = sd
         by_kind[tag] = {k: sd[[i for i, st in enumerate(steps) if st.kind == k]].sum(0) for k, _ in KINDS}
 
-    # 2) 카메라 장착 위치 민감도 (B0 궤적 고정)
-    cam = []
-    base = comps[k09]
-    for dz in CAM_SHIFTS:
-        c2 = list(comps)
-        c2[k09] = replace(base, offset=np.asarray(base.offset, float) - np.array([0, 0, dz]))
-        d = per_segment_dose(scene, c2, fields, "b0").sum(0)[k09]
-        cam.append({"shift_m": dz, "offset_link7_m": [float(v) for v in c2[k09].offset], "C09_Gy": float(d)})
-    for c in cam:
-        c["change_pct"] = (c["C09_Gy"] / cam[0]["C09_Gy"] - 1) * 100
-    print("카메라 위치 민감도:", [(c["shift_m"], round(c["change_pct"], 1)) for c in cam])
-
-    # 수치 정리
+    # 2) 카메라 장착 위치 (15의 궤적별 전체 최적 위치로 C09만 옮김)
+    place = json.load(open(OUTPUTS / "camera" / "placement.json", encoding="utf-8"))
     tot = {tag: sd.sum(0) for tag, sd in seg_dose.items()}
+    for tag in ("b0", "p3"):
+        b = place[tag]["best"]
+        c2 = list(comps)
+        c2[k09] = replace(comps[k09], link=int(b["link"]), offset=np.asarray(b["offset"], float))
+        sd = per_segment_dose(scene, c2, fields, tag)
+        assert abs(sd.sum(0)[k09] / b["C09_Gy"] - 1) < 1e-6, "15와 C09 선량이 다름"
+        tot[f"{tag}_cam"] = sd.sum(0)
 
     def pct(a, b):
         return float((a / b - 1) * 100)
@@ -116,16 +113,32 @@ def main():
                            "C09": pct(tot["p3"][k09], tot["b0"][k09]), "TCP": pct(tot["p3"][kT], tot["b0"][kT]),
                            "best_component": min(((ids[k], pct(tot["p3"][k], tot["b0"][k])) for k in real),
                                                  key=lambda x: x[1])},
-            "camera_shift": cam,
+            "camera_placement": {"J": pct(w @ tot["b0_cam"], w @ tot["b0"]),
+                                 "C09": pct(tot["b0_cam"][k09], tot["b0"][k09]), "TCP": 0.0,
+                                 "mount": place["b0"]["best"],
+                                 "C09_range_constraints": [min(x["C09_change_pct"] for x in place["sensitivity_b0"]),
+                                                           max(x["C09_change_pct"] for x in place["sensitivity_b0"])],
+                                 "A7_tool_only": place["b0"]["best_by_link"].get("A7 링크·공구", {}).get("change_pct")},
+            "P3_plus_camera": {"sum": pct(tot["p3_cam"][real].sum(), tot["b0"][real].sum()),
+                               "J": pct(w @ tot["p3_cam"], w @ tot["b0"]),
+                               "C09": pct(tot["p3_cam"][k09], tot["b0"][k09]), "TCP": pct(tot["p3"][kT], tot["b0"][kT]),
+                               "mount": place["p3"]["best"]},
+            "camera_unconstrained_shift": place["b0"]["shift_check"],
         },
+        "relative_to_C09_b0_cam": {ids[k]: float(tot["b0_cam"][k] / tot["b0_cam"][real].max()) for k in real},
         "p3_time_s": p3["T_total_s"], "p3_torque": p3["max_torque_utilization_envelope"],
         "xe": {k: xe[k] for k in ("sorbent_kg_per_day", "bedA_strength_T_on_7d_tc0_GyPerH_1m", "tid_lim_Gy")},
+        "design": design_numbers(),
     }
     with open(OUT / "poster_numbers.json", "w", encoding="utf-8") as f:
         json.dump(nums, f, ensure_ascii=False, indent=2)
 
-    figures(comps, tot, by_kind, real, k09, kT, nums)
+    f1, f2, f3, f3s = fig_data(comps, tot, by_kind, real, k09, kT, nums)
+    figures(f1, f2, f3, f3s)
+    export_tables(f1, f2, f3, f3s)
+    scene_figure(scene, comps, k09, place["p3"]["best"])
     print(json.dumps(nums["levers_pct_vs_b0"], ensure_ascii=False, indent=1))
+    print(json.dumps(nums["design"], ensure_ascii=False, indent=1))
     print(f"출력 폴더: {OUT}")
 
 
@@ -146,113 +159,312 @@ def _save(fig, name):
         fig.savefig(OUT / f"{name}.{ext}", facecolor="white", **kw)
 
 
-def figures(comps, tot, by_kind, real, k09, kT, nums):
-    plt = _style()
-    C = viz_style.CATEGORICAL
-    ids = [c.id for c in comps]
+EN_NAME = {"C01": "A1 drive", "C02": "A2 drive", "C03": "A3 drive", "C04": "A4 drive", "C05": "A5 drive",
+           "C06": "A6 drive", "C07": "A7 drive", "C08": "Tool drive", "C09": "Wrist camera",
+           "C10": "Base connector", "P0": "TCP (point-robot model)"}
+FIG_W = 4.9   # 포스터 패널의 한 단 너비(약 125 mm)와 같게 두어 글자 크기가 그대로 인쇄되게 한다 [in]
+DESIGNS = [("tcp", "Point-robot (TCP) design"), ("b0", "Component-level design (B0 = P3)"),
+           ("p3_cam", "Component-level + camera mount (P3)")]
 
-    # fig1: 부품별 누적선량 (B0, C09 = 1), 구간 종류별 누적 + TCP
-    order = sorted(real, key=lambda k: tot["b0"][k])
-    labels = [f"{comps[k].id} {comps[k].name}" for k in order] + ["TCP (점 로봇 가정)"]
-    ref = tot["b0"][k09]
-    fig, ax = plt.subplots(figsize=(6.2, 4.6))
-    y = np.arange(len(labels))
-    left = np.zeros(len(labels))
-    for (kind, name), col in zip(KINDS, C[:3]):
-        vals = np.array([by_kind["b0"][kind][k] for k in order] + [by_kind["b0"][kind][kT]]) / ref
-        ax.barh(y, vals, left=left, color=col, height=0.68, label=name, edgecolor=viz_style.SURFACE, linewidth=1.0)
-        left += vals
-    ax.barh(y[-1], left[-1], height=0.68, fill=False, edgecolor=viz_style.INK_2, linewidth=1.0, hatch="///")
-    for yi, v in zip(y, left):
-        ax.text(v + 0.02, yi, f"{v:.2f}", va="center", fontsize=9, color=viz_style.INK_2)
-    ax.axvline(1.0, color=viz_style.MUTED, lw=0.8, ls=":")
-    ax.set_yticks(y, labels)
-    ax.set_xlabel("작업 전체 누적선량 (손목 카메라 C09 = 1, 가상 선원)")
-    ax.set_xlim(0, left.max() * 1.15)
-    ax.grid(axis="x", color=viz_style.GRID, lw=0.6)
-    ax.set_axisbelow(True)
-    ax.legend(loc="lower right", frameon=False)
-    fig.tight_layout()
-    _save(fig, "fig1_component_dose")
-    plt.close(fig)
 
-    # fig2: B0 대비 변화율 (같은 TCP라도 부품 선량은 달라진다)
-    L = nums["levers_pct_vs_b0"]
-    cam20 = next(c for c in L["camera_shift"] if abs(c["shift_m"] - 0.20) < 1e-9)
-    groups = [f"경로 최적화 (B1)\n가중합 J {L['B1_path']['J']:+.1f}%",
-              f"체류 자세 최적화 (P3)\n가중합 J {L['P3_posture']['J']:+.1f}%",
-              "카메라 장착 위치\n20 cm 뒤로 (민감도)"]
-    series = [("손목 카메라 C09", [L["B1_path"]["C09"], L["P3_posture"]["C09"], cam20["change_pct"]]),
-              ("TCP (점 로봇 가정)", [L["B1_path"]["TCP"], L["P3_posture"]["TCP"], 0.0])]
-    fig, ax = plt.subplots(figsize=(6.2, 3.3))
-    h = 0.34
-    yg = np.arange(len(groups))
-    for si, ((name, vals), col) in enumerate(zip(series, (C[0], C[1]))):
-        for gi, v in enumerate(vals):
-            yy = yg[gi] + (si - 0.5) * h
-            ax.barh(yy, v, height=h * 0.86, color=col, label=name if gi == 0 else None,
-                    edgecolor=viz_style.SURFACE, linewidth=0.8)
-            txt = f"{v:+.1f}%" if abs(v) >= 0.05 else "0.0%"
-            if v < -8:
-                ax.text(v - 1.0, yy, txt, va="center", ha="right", fontsize=9, color=viz_style.INK_2)
-            else:
-                ax.text(min(v, 0) - 1.0, yy, txt, va="center", ha="right", fontsize=9, color=viz_style.INK_2)
-    ax.axvline(0, color=viz_style.INK_2, lw=0.8)
-    ax.set_yticks(yg, groups)
-    ax.invert_yaxis()
-    ax.set_xlabel("B0(시간 최소 기준선) 대비 작업 전체 선량 변화 [%]")
-    ax.set_xlim(-80, 4)
-    ax.grid(axis="x", color=viz_style.GRID, lw=0.6)
-    ax.set_axisbelow(True)
-    ax.legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), frameon=False, fontsize=9.5)
-    fig.tight_layout()
-    _save(fig, "fig2_levers")
-    plt.close(fig)
+def design_numbers():
+    """16 결과 중 포스터에 쓰는 값."""
+    d = json.load(open(OUTPUTS / "design" / "summary_design.json", encoding="utf-8"))
+    out = {"key_scenario": d["key_scenario"], "check_vs_11": d["check_vs_11_max_rel_err"], "designs": {}}
+    for key, dd in d["designs"].items():
+        k7 = next(r for r in dd["key_rows"] if r["T_on_d"] == 7)
+        rng = dd["T_on_range_by_robot_yearly_parts"]
+        out["designs"][key] = {
+            "name": dd["name"],
+            "worst_ratio_rel_b0": dd["worst_ratio_rel_b0"],
+            "limiting": [(x["id"], x["rel_to_b0_C09"]) for x in dd["limiting_bedA"]],
+            "T_on_7d_W_mm": k7["x_req_mm_yearly_parts"], "T_on_7d_module_kg": k7["module_kg_yearly_parts"],
+            "T_on_max_kr120_d": rng["kr120"][1] if rng["kr120"] else None,
+            "T_on_max_kr210_d": rng["kr210"][1] if rng["kr210"] else None,
+            "C1_W_robot_ok_yearly_parts": dd["C1_W_robot_ok_yearly_parts"],
+        }
+    return out
 
-    # fig3: Xe 베드 교체 모듈 질량 대 교체 간격
-    with open(OUTPUTS / "xe_bed" / "budget_table.csv", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
+
+def robot_caps():
     xe_cfg = json.load(open(ROOT / "config" / "xe_bed.json", encoding="utf-8"))
-
-    def series_of(cond, tc, fixed, key):
-        rr = [r for r in rows if r["concept"].startswith("C1") and r["material"] == "W" and r["condition"] == cond
-              and float(r["t_c_d"]) == tc and r["B_fixed_shield"] == fixed and r[key]]
-        rr.sort(key=lambda r: float(r["T_on_d"]))
-        return [float(r["T_on_d"]) for r in rr], [float(r[key]) for r in rr]
-
-    fig, ax = plt.subplots(figsize=(6.2, 3.9))
-    x0, y0 = series_of("25 °C, 1 bar", 0, "False", "module_kg")
-    x1, y1 = series_of("0 °C, 7 bar", 3, "True", "module_kg_yearly_parts")
-    ax.plot(x0, y0, color=C[1], lw=2, marker="o", ms=4, label="현재 가정 (상온·대기압, 냉각·차폐벽 없음)")
-    ax.plot(x1, y1, color=C[0], lw=2, marker="o", ms=4,
-            label="0 °C·7 bar + 운전 베드 차폐벽\n+ 3일 냉각 + 로봇 부품 매년 교체")
     caps = {}
     for r in xe_cfg["robots"]["candidates"]:
         cap = min(r["rated_kg"], r["envelope_kg"] or r["rated_kg"])
         caps.setdefault(int(cap // 20), []).append((r["name"].replace("KUKA ", "").replace(" R2700-2", "")
                                                    .replace(" R820", "").replace("LBR ", ""), cap))
-    groups_ = sorted((min(c for _, c in items), items) for items in caps.values())
-    for gi, (cap, items) in enumerate(groups_):
-        ax.axhline(cap, color=viz_style.MUTED, lw=0.8, ls="--")
-        crowded = gi + 1 < len(groups_) and groups_[gi + 1][0] / cap < 1.4
-        ax.text(0.22, cap * (0.95 if crowded else 1.05), " / ".join(n for n, _ in items) + f" 허용 {cap:g} kg",
-                va="top" if crowded else "bottom", ha="left", fontsize=8.5, color=viz_style.INK_2)
-    ax.annotate("로봇 직접 교체 가능\n(모듈 약 120 kg)", xy=(x1[0], y1[0]), xytext=(2.2, 45),
-                fontsize=8.5, color=viz_style.INK, ha="center",
-                arrowprops=dict(arrowstyle="-", color=viz_style.INK_2, lw=0.8))
-    ax.set_xscale("log")
-    viz_style.log_axis(ax, "y")
-    ticks = [0.25, 1, 3, 7, 14, 30]
-    ax.set_xticks(ticks, [f"{t:g}" for t in ticks])
-    ax.set_xlim(0.2, 30)
-    ax.set_xlabel("베드 운전시간 = 교체 간격 [일]")
-    ax.set_ylabel("교체 모듈 질량 [kg]\n(흡착제 + 용기 + W 차폐)")
-    ax.grid(True, which="major", color=viz_style.GRID, lw=0.6)
-    ax.set_ylim(8, 3e4)
-    ax.legend(loc="upper left", frameon=False, fontsize=8.5)
+    return sorted((min(c for _, c in items), items) for items in caps.values())
+
+
+def fig_data(comps, tot, by_kind, real, k09, kT, nums):
+    """그림 3장의 데이터 표 (그림과 Numbers용 내보내기가 같은 표를 쓴다)."""
+    order = sorted(real, key=lambda k: tot["b0"][k])
+    ref = tot["b0"][k09]
+    f1 = [{"Component": f"{comps[k].id} {EN_NAME[comps[k].id]}",
+           **{name: float(by_kind["b0"][kind][k] / ref) for kind, name in KINDS}} for k in order]
+    f1.append({"Component": EN_NAME["P0"], **{name: float(by_kind["b0"][kind][kT] / ref) for kind, name in KINDS}})
+    L = nums["levers_pct_vs_b0"]
+    f2 = [{"Lever": "Path optimization (B1)", "key": "B1_path"},
+          {"Lever": "Dwell posture optimization (P3)", "key": "P3_posture"},
+          {"Lever": "Camera mount optimization", "key": "camera_placement"},
+          {"Lever": "P3 + camera mount", "key": "P3_plus_camera"}]
+    for r in f2:
+        v = L[r["key"]]
+        r.update({"Wrist camera C09 [%]": v["C09"], "TCP (point-robot model) [%]": v["TCP"],
+                  "Weighted sum J [%]": v["J"]})
+        lo, hi = (v["C09_range_constraints"] if r["key"] == "camera_placement" else (None, None))
+        r.update({"C09 range low [%]": lo, "C09 range high [%]": hi})
+    with open(OUTPUTS / "design" / "design_fine.csv", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    T = sorted({float(r["T_on_d"]) for r in rows})
+    f3 = []
+    for t in T:
+        rec = {"Exchange interval [days]": t}
+        for key, name in DESIGNS:
+            r = next(r for r in rows if r["design"] == key and float(r["T_on_d"]) == t)
+            rec[name + " [kg]"] = float(r["module_kg_yearly_parts"]) if r["module_kg_yearly_parts"] else None
+        for cap, items in robot_caps():
+            if cap > 30:
+                rec[" / ".join(n for n, _ in items) + " limit [kg]"] = cap
+        f3.append(rec)
+    D = nums["design"]["designs"]
+    f3s = [{"Design": name, "Max interval with KR 120 [days]": D[key]["T_on_max_kr120_d"],
+            "Max interval with KR 210 [days]": D[key]["T_on_max_kr210_d"],
+            "Module mass at 7-day interval [kg]": D[key]["T_on_7d_module_kg"],
+            "W shield at 7-day interval [mm]": D[key]["T_on_7d_W_mm"],
+            "Limiting part": f"{D[key]['limiting'][0][0]} {EN_NAME[D[key]['limiting'][0][0]]}",
+            "Exchanges per year with KR 120": (365.25 / D[key]["T_on_max_kr120_d"]
+                                               if D[key]["T_on_max_kr120_d"] else None)} for key, name in DESIGNS]
+    return f1, f2, f3, f3s
+
+
+def figures(f1, f2, f3, f3s):
+    plt = _style()
+    C = viz_style.CATEGORICAL
+
+    # fig1: 부품별 누적선량 (B0, C09 = 1), 구간 종류별 누적 + TCP
+    labels = [r["Component"] for r in f1]
+    fig, ax = plt.subplots(figsize=(FIG_W, 3.9))
+    y = np.arange(len(labels))
+    left = np.zeros(len(labels))
+    for (kind, name), col in zip(KINDS, C[:3]):
+        vals = np.array([r[name] for r in f1])
+        ax.barh(y, vals, left=left, color=col, height=0.68, label=name, edgecolor="white", linewidth=1.0)
+        left += vals
+    ax.barh(y[-1], left[-1], height=0.68, fill=False, edgecolor=viz_style.INK_2, linewidth=1.0, hatch="///")
+    for yi, v in zip(y, left):
+        ax.text(v + 0.02, yi, f"{v:.2f}", va="center", fontsize=9.5, color=viz_style.INK_2)
+    ax.axvline(1.0, color=viz_style.MUTED, lw=0.8, ls=":")
+    ax.set_yticks(y, labels)
+    ax.set_xlabel("Dose over one exchange (wrist camera C09 = 1, virtual source)")
+    ax.set_xlim(0, left.max() * 1.15)
+    ax.grid(axis="x", color=viz_style.GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    ax.legend(loc="center right", bbox_to_anchor=(1.0, 0.36), frameon=False, fontsize=9.5, handlelength=1.2)
+    fig.tight_layout()
+    _save(fig, "fig1_component_dose")
+    plt.close(fig)
+
+    # fig2: B0 대비 변화율 (같은 TCP라도 부품 선량은 달라진다)
+    groups = [f"{r['Lever'].replace(' optimization', ' opt.')}\nJ {r['Weighted sum J [%]']:+.1f}%" for r in f2]
+    series = [("Wrist camera C09", "Wrist camera C09 [%]", C[0]),
+              ("TCP (point-robot model)", "TCP (point-robot model) [%]", C[1])]
+    fig, ax = plt.subplots(figsize=(FIG_W, 3.5))
+    h = 0.36
+    yg = np.arange(len(groups))
+    for si, (name, col_key, col) in enumerate(series):
+        for gi, r in enumerate(f2):
+            v = r[col_key]
+            yy = yg[gi] + (si - 0.5) * h
+            ax.barh(yy, v, height=h * 0.86, color=col, label=name if gi == 0 else None,
+                    edgecolor="white", linewidth=0.8)
+            if si == 0 and r["C09 range low [%]"] is not None:
+                ax.plot([r["C09 range low [%]"], r["C09 range high [%]"]], [yy, yy], color=viz_style.INK, lw=1.2)
+                for xe_ in (r["C09 range low [%]"], r["C09 range high [%]"]):
+                    ax.plot([xe_, xe_], [yy - 0.09, yy + 0.09], color=viz_style.INK, lw=1.2)
+            txt = f"{v:+.1f}%" if abs(v) >= 0.05 else "0.0% (TCP unchanged)"
+            x_txt = min(v, r["C09 range low [%]"] or v) if si == 0 else v
+            ax.text(min(x_txt, 0) - 1.5, yy, txt, va="center", ha="right", fontsize=9.5,
+                    color=viz_style.INK_2 if si == 0 else col)
+    ax.axvline(0, color=viz_style.INK_2, lw=0.8)
+    ax.set_yticks(yg, groups)
+    ax.invert_yaxis()
+    ax.set_xlabel("Dose change vs. B0 (time-optimal baseline) [%]")
+    ax.set_xlim(-100, 4)
+    ax.grid(axis="x", color=viz_style.GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    ax.legend(loc="upper left", frameon=False, fontsize=9.5, handlelength=1.2)
+    fig.tight_layout()
+    _save(fig, "fig2_levers")
+    plt.close(fig)
+
+    # fig3: 설계 방식별 교체 모듈 질량 대 교체 간격 (16, 대표 조건, 부품 매년 교체)
+    fig, ax = plt.subplots(figsize=(FIG_W, 3.5))
+    x = np.array([r["Exchange interval [days]"] for r in f3])
+    m = x <= 20
+    cols = {"tcp": C[1], "b0": C[2], "p3_cam": C[0]}
+    caps = robot_caps()
+    kr120 = next(cap for cap, items in caps if any("KR 120" in n for n, _ in items))
+    for (key, name), srow in zip(DESIGNS, f3s):
+        yv = np.array([r[name + " [kg]"] for r in f3], float)
+        ax.plot(x[m], yv[m], color=cols[key], lw=2.2, label=name)
+        t_max = srow["Max interval with KR 120 [days]"]
+        if t_max:
+            ax.plot([t_max], [kr120], "o", ms=6, color=cols[key], markeredgecolor="white", markeredgewidth=1.0, zorder=5)
+            ax.plot([t_max, t_max], [50, kr120], color=cols[key], lw=0.9, ls=":", zorder=1)
+            ax.text(t_max + 0.12, 53, f"{t_max:.1f} d", ha="left", va="bottom", fontsize=10, color=cols[key],
+                    fontweight="bold")
+    for cap, items in caps:
+        if cap < 30:
+            continue
+        ax.axhline(cap, color=viz_style.MUTED, lw=0.9, ls="--", zorder=0)
+        ax.text(19.8, cap - 2.5, " / ".join(n for n, _ in items) + f" limit {cap:g} kg", ha="right", va="top",
+                fontsize=9.5, color=viz_style.INK_2)
+    ax.set_xlim(3, 20)
+    ax.set_ylim(50, 260)
+    ax.set_xlabel("Exchange interval = bed operating time [days]")
+    ax.set_ylabel("Module mass [kg]\n(sorbent + vessel + W shield)")
+    ax.grid(True, color=viz_style.GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    ax.legend(loc="upper left", frameon=False, fontsize=9.5, handlelength=1.4)
     fig.tight_layout()
     _save(fig, "fig3_exchange")
     plt.close(fig)
+
+
+def export_tables(f1, f2, f3, f3s):
+    """그림 데이터를 CSV와 xlsx(시트별)로 내보낸다. Numbers, Excel에서 차트를 직접 만들 때 쓴다."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    out = OUT / "tables"
+    out.mkdir(parents=True, exist_ok=True)
+    t1 = [{"Component": r["Component"],
+           "Label": f"{r['Component']}  {sum(r[n] for _, n in KINDS):.2f}",
+           **{name: (None if r["Component"] == EN_NAME["P0"] else r[name]) for _, name in KINDS},
+           "TCP total (point-robot model)": (sum(r[n] for _, n in KINDS) if r["Component"] == EN_NAME["P0"] else None),
+           "Total": sum(r[n] for _, n in KINDS)} for r in reversed(f1)]
+    t2 = [{"Lever": r["Lever"], "Label": f"{r['Lever']} (J {r['Weighted sum J [%]']:+.1f}%)",
+           **{k: v for k, v in r.items() if k not in ("key", "Lever")}} for r in f2]
+    t3 = [r for r in f3 if r["Exchange interval [days]"] <= 20]
+    tables = [("Fig1_component_dose", t1, "Cumulative dose per exchange task, B0 trajectory, relative to wrist camera C09 = 1 "
+                                          "(virtual source, relative values only). Rows sorted from largest to smallest."),
+              ("Fig2_levers", t2, "Change in task dose vs. B0 [%]. Camera range = best mount under alternative constraint "
+                                  "assumptions (view distance 0.3 to 0.5 m, bracket 6 to 12 cm, 3 or 5 visible points)."),
+              ("Fig3_module_mass", t3, "Module mass vs. exchange interval. 0 deg C, 7 bar; fixed wall on the online bed; "
+                                       "3-day cooling; robot parts replaced yearly; W shield. Upper-bound source "
+                                       "(release fraction 1, no self-shielding or buildup)."),
+              ("Fig3_summary", f3s, "Longest exchange interval each robot can handle, per design approach.")]
+    wb = Workbook()
+    ws0 = wb.active
+    ws0.title = "README"
+    info = [("E part poster figure data", None),
+            ("Generated by", "scripts/14_poster_figures.py (dose-aware-traj)"),
+            ("Source files", "outputs/b0, b1, p3 (trajectory CSV), outputs/camera/placement.json, "
+                             "outputs/design/design_fine.csv, outputs/poster/poster_numbers.json"),
+            ("Note", "Fig1 and Fig2 use a virtual source: compare values only relative to each other. "
+                     "Fig3 uses the Xe bed upper-bound source.")]
+    info += [(name, note) for name, _, note in tables]
+    for i, (a, b) in enumerate(info, start=1):
+        ws0.cell(i, 1, a).font = Font(name="Arial", bold=True, size=12 if i == 1 else 10)
+        if b:
+            ws0.cell(i, 2, b).font = Font(name="Arial", size=10)
+            ws0.cell(i, 2).alignment = Alignment(wrap_text=True, vertical="top")
+    ws0.column_dimensions["A"].width = 24
+    ws0.column_dimensions["B"].width = 110
+    head_fill = PatternFill("solid", start_color="F3F6FB")
+    for name, rows, note in tables:
+        keys = list(rows[0].keys())
+        with open(out / f"{name}.csv", "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=keys)
+            w.writeheader()
+            w.writerows(rows)
+        ws = wb.create_sheet(name)
+        for j, k in enumerate(keys, start=1):
+            c = ws.cell(1, j, k)
+            c.font = Font(name="Arial", bold=True, size=10)
+            c.fill = head_fill
+            c.alignment = Alignment(wrap_text=True, vertical="center")
+            ws.column_dimensions[get_column_letter(j)].width = max(14, min(34, len(k) + 2))
+        for i, r in enumerate(rows, start=2):
+            for j, k in enumerate(keys, start=1):
+                v = r[k]
+                c = ws.cell(i, j, v)
+                c.font = Font(name="Arial", size=10)
+                if isinstance(v, float):
+                    if "[%]" in k:
+                        c.value = v / 100.0
+                        c.number_format = "0.0%"
+                    elif "[days]" in k:
+                        c.number_format = "0.00"
+                    elif "[kg]" in k or "[mm]" in k:
+                        c.number_format = "0.0"
+                    else:
+                        c.number_format = "0.000"
+        # 합계, 연간 교체 횟수는 수식으로 둔다 (값을 고치면 따라 바뀜)
+        if "Total" in keys:
+            jt, cols_ = keys.index("Total") + 1, [get_column_letter(keys.index(n) + 1) for _, n in KINDS]
+            jtcp = get_column_letter(keys.index("TCP total (point-robot model)") + 1)
+            for i, r in enumerate(rows, start=2):
+                ws.cell(i, jt).value = (f"={jtcp}{i}" if r["Component"] == EN_NAME["P0"]
+                                        else "=" + "+".join(f"{c}{i}" for c in cols_))
+        if "Exchanges per year with KR 120" in keys:
+            jy = keys.index("Exchanges per year with KR 120") + 1
+            jm = get_column_letter(keys.index("Max interval with KR 120 [days]") + 1)
+            for i in range(2, len(rows) + 2):
+                ws.cell(i, jy).value = f"=365.25/{jm}{i}"
+                ws.cell(i, jy).number_format = "0.0"
+        ws.row_dimensions[1].height = 32
+        ws.freeze_panes = "A2"
+    wb.save(out / "E_poster_figure_data.xlsx")
+    print(f"표 저장: {out}")
+
+
+def scene_figure(scene, comps, k09, best):
+    """S2 커플링 해제 체류 자세(P3)와 손목 카메라 현재 위치(노랑), 변경 위치(보라, 회색 막대는 브래킷)."""
+    import pybullet as p
+    from PIL import Image
+
+    steps = task_steps()
+    t, seg, q = load_traj("p3")
+    s2 = next(i for i, st in enumerate(steps) if st.kind == "dwell" and st.dwell_key == "S2_dwell")
+    row = int(np.nonzero(seg == s2)[0][0])
+    apply_state(scene, steps[s2].state)
+    r = scene.robot
+    pos, R = r.link_frames(q[row])
+    old = pos[comps[k09].link] + R[comps[k09].link] @ np.asarray(comps[k09].offset, float)
+    new = pos[int(best["link"])] + R[int(best["link"])] @ np.asarray(best["offset"], float)
+    marks = []
+    for x, col in ((old, viz_style.CATEGORICAL[3]), (new, viz_style.CATEGORICAL[6])):
+        rgba = [int(col[i:i + 2], 16) / 255 for i in (1, 3, 5)] + [1.0]
+        vs = p.createVisualShape(p.GEOM_SPHERE, radius=0.035, rgbaColor=rgba, physicsClientId=scene.cid)
+        marks.append(p.createMultiBody(0, -1, vs, x.tolist(), physicsClientId=scene.cid))
+    # 브래킷: 장착 링크 표면의 가장 가까운 점에서 카메라까지 막대
+    cs = p.createCollisionShape(p.GEOM_SPHERE, radius=0.001, physicsClientId=scene.cid)
+    probe = p.createMultiBody(0, cs, -1, new.tolist(), physicsClientId=scene.cid)
+    cp = min(p.getClosestPoints(probe, r.id, 0.5, linkIndexB=int(best["link"]), physicsClientId=scene.cid),
+             key=lambda c: c[8])
+    p.removeBody(probe, physicsClientId=scene.cid)
+    a, b = np.asarray(cp[6]), new
+    L = float(np.linalg.norm(b - a))
+    if L > 1e-3:
+        z = (b - a) / L
+        ax_ = np.cross([0, 0, 1], z)
+        ang = float(np.arccos(np.clip(z[2], -1, 1)))
+        quat = p.getQuaternionFromAxisAngle(ax_ / np.linalg.norm(ax_), ang) if np.linalg.norm(ax_) > 1e-9 else [0, 0, 0, 1]
+        vs = p.createVisualShape(p.GEOM_CYLINDER, radius=0.01, length=L, rgbaColor=[0.35, 0.35, 0.35, 1],
+                                 physicsClientId=scene.cid)
+        marks.append(p.createMultiBody(0, -1, vs, ((a + b) / 2).tolist(), quat, physicsClientId=scene.cid))
+    img = scene.snapshot(None, q[row], yaw=58, pitch=-20, dist=1.35, target=(0.38, -0.15, 0.62), size=(1500, 1500))
+    for b in marks:
+        p.removeBody(b, physicsClientId=scene.cid)
+    bg = img[0, 0].astype(int)
+    diff = np.abs(img.astype(int) - bg).sum(axis=2) > 30
+    ys, xs = np.nonzero(diff)
+    pad = 20
+    crop = img[max(ys.min() - pad, 0):ys.max() + pad, max(xs.min() - pad, 0):xs.max() + pad]
+    Image.fromarray(crop).save(OUT / "scene_dwell.png")
 
 
 if __name__ == "__main__":

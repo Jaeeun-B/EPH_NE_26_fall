@@ -14,6 +14,7 @@
 | [0006](0006-inclination-urm46.md) | 경사 조건에 UR M46 정적 종경사를 더할지 | proposed | 2026-10-11 |
 | [0007](0007-heavy-robot-candidates.md) | iiwa 14를 내리고 KR 120/210/300을 후보로 계산한다 | proposed | 2026-10-11 |
 | [0008](0008-dwell-posture-optimization.md) | P3 체류 자세 최적화는 웨이포인트 관절각 선택으로 구현 | accepted | 2026-11-02 |
+| [0009](0009-camera-placement-and-design-comparison.md) | 카메라 장착 위치는 제약 포함 격자 탐색, 설계 방식 비교는 11 시나리오 표 재사용 | accepted | 2026-11-02 |
 
 ## 상태의 뜻
 

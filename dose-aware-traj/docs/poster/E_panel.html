@@ -1,110 +1,145 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>E 파트 포스터 패널</title>
+<title>Part E poster panel</title>
 <style>
-  /* 포스터 1/6 패널: A0 세로(841 × 1189 mm)를 2열 × 3행으로 나눈 크기 기준 */
+  /* One sixth of an A0 portrait poster (841 x 1189 mm split into 2 columns x 3 rows) */
   @page { size: 420mm 396mm; margin: 0; }
   :root {
-    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781; --rule: #c3c2b7;
-    --accent: #1c5cab; --tint: #f3f6fb;
+    --ink: #0b0b0b; --ink-2: #4a4945; --muted: #85837d; --rule: #c3c2b7;
+    --accent: #1c5cab; --tint: #f3f6fb; --cam-old: #eda100; --cam-new: #4a3aa7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 420mm; height: 396mm; background: #fff; }
   body {
-    font-family: "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", sans-serif;
-    color: var(--ink); font-size: 15pt; line-height: 1.42; letter-spacing: -0.01em;
-    padding: 12mm 13mm 10mm;
-    display: grid; grid-template-rows: auto 1fr auto; gap: 6mm;
+    font-family: "Source Sans 3", "Source Sans Pro", "Noto Sans", "Noto Sans CJK KR", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink); font-size: 12.6pt; line-height: 1.36; letter-spacing: -0.005em;
+    padding: 10mm 11mm 8mm;
+    display: grid; grid-template-rows: auto 1fr auto; gap: 4.5mm;
   }
-  header { display: grid; grid-template-columns: auto 1fr; gap: 0 6mm; align-items: center;
-           border-bottom: 0.6mm solid var(--ink); padding-bottom: 4mm; }
-  .badge { width: 19mm; height: 19mm; border-radius: 2mm; background: var(--accent); color: #fff;
-           font-size: 34pt; font-weight: 700; display: grid; place-items: center; grid-row: span 2; }
-  h1 { font-size: 28pt; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; }
-  .sub { font-size: 14pt; color: var(--ink-2); }
+  header { display: grid; grid-template-columns: auto 1fr; gap: 0 5mm; align-items: center;
+           border-bottom: 0.6mm solid var(--ink); padding-bottom: 3.5mm; }
+  .badge { width: 17mm; height: 17mm; border-radius: 2mm; background: var(--accent); color: #fff;
+           font-size: 30pt; font-weight: 700; display: grid; place-items: center; grid-row: span 2; }
+  h1 { font-size: 24pt; line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; }
+  .sub { font-size: 13pt; color: var(--ink-2); margin-top: 1mm; }
   .sub b { color: var(--ink); font-weight: 600; }
-  main { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 5mm 8mm; min-height: 0; }
-  h2 { font-size: 17pt; font-weight: 700; color: var(--accent); margin: 0 0 1.5mm; }
-  h2 + ul { margin-bottom: 3.5mm; }
+  main { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 7mm; min-height: 0; }
+  .col { display: flex; flex-direction: column; gap: 3.2mm; min-height: 0; }
+  h2 { font-size: 15pt; font-weight: 700; color: var(--accent); margin: 0 0 1mm; letter-spacing: 0; }
+  p { margin: 0; }
   ul { list-style: none; }
-  li { position: relative; padding-left: 4.2mm; margin-bottom: 1.2mm; }
-  li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 1.6mm; height: 1.6mm;
+  li { position: relative; padding-left: 4mm; margin-bottom: 0.9mm; }
+  li::before { content: ""; position: absolute; left: 0.3mm; top: 0.6em; width: 1.5mm; height: 1.5mm;
                border-radius: 50%; background: var(--ink-2); }
-  .eq { font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-style: italic; font-size: 15.5pt; }
-  figure { display: flex; flex-direction: column; gap: 2mm; min-height: 0; }
+  .eq { font-family: "STIX Two Math", "Cambria Math", "Times New Roman", serif; font-style: italic; }
+  .key { font-weight: 700; }
+  figure { display: flex; flex-direction: column; gap: 1.6mm; }
   figure img { width: 100%; height: auto; display: block; }
-  figcaption { font-size: 13pt; line-height: 1.38; color: var(--ink-2); }
+  figcaption { font-size: 11.4pt; line-height: 1.33; color: var(--ink-2); }
   figcaption b { color: var(--ink); }
-  .key { color: var(--ink); font-weight: 600; }
-  footer { display: grid; grid-template-columns: 1fr; gap: 2.5mm; }
-  .concl { background: var(--tint); border-left: 1.4mm solid var(--accent); padding: 3.5mm 5mm; }
-  .concl h2 { margin-bottom: 1mm; }
-  .concl ol { list-style: none; counter-reset: c; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 6mm; }
-  .concl li { counter-increment: c; padding-left: 7mm; font-size: 14pt; }
-  .concl li::before { content: counter(c); background: var(--accent); color: #fff; width: 5.2mm; height: 5.2mm;
-                      font-size: 10pt; font-weight: 700; display: grid; place-items: center; top: 0.18em; }
-  .scene { display: grid; grid-template-columns: 50mm 1fr; gap: 4mm; align-items: end; margin-top: 1mm; }
-  .scene img { width: 50mm; height: auto; display: block; border-radius: 1mm; }
-  .scene p { font-size: 12.5pt; line-height: 1.38; color: var(--ink-2); }
-  .note { font-size: 10.5pt; color: var(--muted); line-height: 1.35; }
+  .scene { display: grid; grid-template-columns: 46mm 1fr; gap: 3.5mm; align-items: center; }
+  .scene img { width: 46mm; height: auto; display: block; border-radius: 1mm; }
+  .scene p { font-size: 11.2pt; line-height: 1.32; color: var(--ink-2); }
+  .dot { display: inline-block; width: 2.6mm; height: 2.6mm; border-radius: 50%; vertical-align: -0.2mm; }
+  .box { background: var(--tint); border-left: 1.3mm solid var(--accent); padding: 3mm 4mm 2.4mm; }
+  .box ol { list-style: none; counter-reset: c; }
+  .box ol li { counter-increment: c; padding-left: 6.5mm; margin-bottom: 1.4mm; }
+  .box ol li::before { content: counter(c); background: var(--accent); color: #fff; width: 4.8mm; height: 4.8mm;
+                       font-size: 9.5pt; font-weight: 700; display: grid; place-items: center; top: 0.15em; left: 0; }
+  .limits li { font-size: 11.6pt; }
+  footer { border-top: 0.3mm solid var(--rule); padding-top: 2mm; font-size: 9.6pt; line-height: 1.3; color: var(--muted); }
+  footer b { color: var(--ink-2); font-weight: 600; }
 </style>
 </head>
 <body>
 <header>
   <div class="badge">E</div>
-  <h1>부품 단위 선량을 고려한 흡착베드 교체 궤적 최적화</h1>
-  <div class="sub">Dose-aware trajectory optimization for remote Xe bed exchange · <b>백재은</b> (경로계획 알고리즘 설계 및 시뮬레이션)</div>
+  <h1>Component-level dose-aware trajectory optimization for remote Xe adsorption-bed exchange</h1>
+  <div class="sub">Part E · Path-planning algorithm design and simulation · <b>Jaeeun Baek</b></div>
 </header>
 
 <main>
-  <section>
-    <h2>목적</h2>
-    <ul>
-      <li>오프가스 Xe 흡착베드를 교체하는 원격 매니퓰레이터의 피폭을 <span class="key">TCP 한 점이 아닌 부품 10개 단위</span>로 평가 (관절 구동부 7, 공구 구동부, 손목 카메라, 베이스 커넥터)</li>
-      <li>경로, 작업 자세, 부품 배치 중 부품 선량을 실제로 줄이는 변수를 정량화</li>
-    </ul>
-    <h2>방법</h2>
-    <ul>
-      <li>PyBullet 핫셀 시뮬레이션 (KUKA iiwa 14), 교체 작업 S1~S6 (접근 → 커플링 해제 → 반출 → 장착 → 체결 → 복귀)</li>
-      <li>부품 선량 <span class="eq">D<sub>k</sub> = S<sub>k</sub> ∫ Ḋ(p<sub>k</sub>(q(t))) dt</span>, 가중합 <span class="eq">J = Σ D<sub>k</sub> / TID<sub>lim,k</sub></span></li>
-      <li><b>B0</b> RRT-Connect + TOPP-RA (시간 최소, 선박 경사 7조건 토크 제약)</li>
-      <li><b>B1</b> TCP 선량 가중 3D A* (경로 최적화)</li>
-      <li><b>P3</b> 체류 자세 최적화: 공구 회전 × 영공간 후보 약 450개 중 J 최소 자세 선택</li>
-    </ul>
+  <!-- Column 1: background, objective, methods -->
+  <div class="col">
+    <section>
+      <h2>Background</h2>
+      <p>A marine molten salt reactor strips fission gases from the fuel salt into an off-gas system, where activated-carbon beds hold up xenon until it decays. Two Xe beds alternate: one captures while the saturated one is swapped by a remote manipulator. Every swap adds dose to the robot's electronics. Dose-aware planners usually model the robot as a single point, the tool centre point (TCP), but the robot fails when its most sensitive <i>part</i> (an encoder, the tool controller or the camera) reaches its limit.</p>
+    </section>
+    <section>
+      <h2>Objective</h2>
+      <ul>
+        <li>Track dose on <span class="key">10 robot parts instead of one point</span>: 7 joint drives, tool drive, wrist camera, base connector.</li>
+        <li>Rank the levers that reduce part dose (path, dwell posture, part placement) and show how part-level evaluation changes the shielding, module mass and robot needed for a Xe bed exchange.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Methods</h2>
+      <ul>
+        <li><b>Simulation.</b> PyBullet hot cell, KUKA LBR iiwa 14 (7 axes), exchange task S1 to S6: approach, unlock, remove to cask, fetch new bed, install and lock, return. Joint torques are kept within 80% of the limit over 7 ship inclination cases (MARINA specification).</li>
+        <li><b>Part dose.</b> <span class="eq">D<sub>k</sub> = S<sub>k</sub> ∫ Ḋ(p<sub>k</sub>(q(t))) dt</span> at each part position p<sub>k</sub>. Budget-weighted sum <span class="eq">J = Σ D<sub>k</sub> / TID<sub>lim,k</sub></span>, with TID<sub>lim</sub> = failure dose / 2: encoder 164.55 Gy [1], controller 219 Gy [2], camera 120 Gy (team survey).</li>
+        <li><b>B0 baseline.</b> RRT-Connect [3], shortcutting and time-optimal TOPP-RA [4]. <b>B1:</b> TCP-dose-weighted 3D A* path.</li>
+        <li><b>P3 dwell posture.</b> For each unlock and lock pose, about 450 IK candidates (24 tool yaw angles × 21 null-space elbow poses) with the same TCP; the one with the lowest J over the following moves and dwell is kept.</li>
+        <li><b>Camera mount search.</b> 37,044 grid points (2.5 cm) on links A4 to A7. A mount must lie outside the robot body within a 12 cm bracket, stay clear of the robot, cell and beds over the whole task, and see at least 3 of 8 tool-tip edge points from within 0.5 m during unlock and lock.</li>
+        <li><b>Link to Xe bed design.</b> Upper-bound Xe inventory from MARINA data; the W shield of the exchange module is sized so that every part stays within its lifetime budget, then the module mass is compared with robot payload.</li>
+      </ul>
+    </section>
     <div class="scene">
-      <img src="scene_dwell.png" alt="핫셀 시뮬레이션 장면">
-      <p>S2 커플링 해제 체류 자세 (P3). 빨강 Bed A(교체 대상), 주황 Bed B(교체 중 운전), 초록 신규 베드, 상단 회색 관은 오프가스 배관</p>
+      <img src="scene_dwell.png" alt="Simulation scene at the unlock dwell">
+      <p>Unlock dwell (P3). Red: spent Bed A, orange: online Bed B, green: new bed. <span class="dot" style="background:var(--cam-old)"></span> current camera beside the tool tip; <span class="dot" style="background:var(--cam-new)"></span> optimized mount on an A4-link bracket (grey bar).</p>
     </div>
-  </section>
+  </div>
 
-  <figure>
-    <img src="fig1_component_dose.svg" alt="부품별 누적선량">
-    <figcaption><b>Fig. 1</b> 부품별 누적선량 (B0, C09 = 1). TCP 값은 최대 부품(손목 카메라)의 <b>1.7배</b> → 점 로봇 가정으로는 부품 예산 판단 X. 선량의 <b>75%가 체류</b>, 22%가 베드 근처 직선, 경로계획 구간은 3%</figcaption>
-  </figure>
+  <!-- Column 2: Fig. 1, Fig. 2 -->
+  <div class="col">
+    <figure>
+      <img src="fig1_component_dose.svg" alt="Cumulative dose per part">
+      <figcaption><b>Fig. 1</b> Dose per part over one exchange (B0, virtual source, wrist camera C09 = 1). The TCP value is <b>1.70 times</b> the most exposed part, so a point model misstates every part budget. <b>75%</b> of the summed part dose comes from dwelling (60 s unlock and 60 s lock), 22% from slow straight moves near the beds and only <b>3%</b> from planned transfers, the only share a path planner can change.</figcaption>
+    </figure>
+    <figure>
+      <img src="fig2_levers.svg" alt="Dose change per lever">
+      <figcaption><b>Fig. 2</b> Dose change against B0. Path optimization: J −0.6% (summed part dose −0.4 to −1.0% against 30 B0 seeds). Dwell posture: J −2.2% and A4 drive −9.4%, while the <b>TCP dose does not change</b>, so a point model cannot see this gain. Moving the camera to the best mountable spot (A4-link bracket, 0.5 m from the tool tip) cuts camera dose by <b>81%</b> (72 to 81% under the alternative constraints in the error bar) on the same trajectory. Shifting it 10 to 20 cm back along the tool axis would look similar on paper but places it inside the wrist.</figcaption>
+    </figure>
+    <section>
+      <h2>Why posture cannot protect the camera</h2>
+      <ul>
+        <li>During unlock and lock the tool axis lines up with the bed axis, and the bed acts as a line source along that axis.</li>
+        <li>Turning the tool about this axis or swinging the elbow through the null space keeps the wrist at the same distance from the bed. Only the elbow-side drives gain: A3 −6.1%, A4 −9.4%, A5 −4.8%.</li>
+        <li>The wrist camera and the tool drive, the two most exposed parts, can therefore be protected only by <b>distance (placement), shorter dwell or local shielding</b>, which is what the camera mount search exploits.</li>
+      </ul>
+    </section>
+  </div>
 
-  <figure>
-    <img src="fig2_levers.svg" alt="B0 대비 선량 변화">
-    <figcaption><b>Fig. 2</b> B0 대비 작업 전체 선량 변화. 경로 최적화는 J −0.6% (B0 시드 30개 대비 −0.4~−1.0%). 체류 자세 최적화는 J −2.2%, A4 구동부 −9.4%이지만 <b>TCP는 변화 없음</b> → 점 로봇 모델로는 보이지 않는 개선. 카메라 장착 위치만 바꿔도 C09 −66%</figcaption>
-  </figure>
-
-  <figure>
-    <img src="fig3_exchange.svg" alt="교체 모듈 질량과 로봇 허용 하중">
-    <figcaption><b>Fig. 3</b> Xe 베드 교체 모듈 질량 (MARINA 공개값 기반 상한). 무차폐 교체 1회 손목 카메라 약 3,200 Gy (허용 60 Gy) → 필요 차폐가 모듈 질량을 결정. 로봇 직접 교체는 <b>4개 조건을 모두 만족할 때만</b> 성립, 그 외에는 크레인 + 로봇 분업</figcaption>
-  </figure>
+  <!-- Column 3: Fig. 3, conclusions, limitations -->
+  <div class="col">
+    <figure>
+      <img src="fig3_exchange.svg" alt="Exchange module mass vs exchange interval">
+      <figcaption><b>Fig. 3</b> Exchange module mass vs. exchange interval (sorbent at 0 °C and 7 bar, fixed wall on the online bed, 3-day cooling, robot parts replaced yearly, W shield, upper-bound source). Sizing the shield on the TCP dose inflates the limiting part by <b>1.83 times</b>. With the same KR 120, the longest interval grows from <b>5.3 days</b> (point model) to <b>7.1 days</b> (part level) and <b>9.8 days</b> (part level with camera mount): 69, 51 and 37 exchanges per year. Posture (P3) leaves the shield unchanged because the limiting parts, camera and then tool drive, sit on the tool axis.</figcaption>
+    </figure>
+    <div class="box">
+      <h2>Conclusions</h2>
+      <ol>
+        <li>For this task, part dose is reduced most by <b>dwell time, cooling and shielding</b>, then by <b>part placement</b>, then by dwell posture; the path itself matters least (3% of the dose).</li>
+        <li>A TCP-only evaluation overstates the limiting part by 1.7 to 1.8 times and is blind to posture and placement gains. <b>Part-level evaluation</b> is needed to size shields and choose robots.</li>
+        <li>Part placement is a design variable: moving the camera saves <b>20 kg</b> of module at a 7-day interval (119 to 99 kg). The tool drive becomes limiting next and needs local shielding or a radiation-tolerant controller.</li>
+      </ol>
+    </div>
+    <section class="limits">
+      <h2>Limitations and next steps</h2>
+      <ul>
+        <li>Fig. 1 and 2 use a virtual source (relative values only); Fig. 3 is an upper bound (release fraction 1, no self-shielding or buildup). Dose grids from the radiation part will replace both.</li>
+        <li>The 60 s dwell and 5 cm/s near-bed speed are assumptions awaiting the process part.</li>
+        <li>Camera constraints are assumptions; view during moves, cabling and added mass are not yet checked.</li>
+        <li>Modules of 99 to 137 kg need a KR 120 class robot. A 6-axis arm has no null space, so P3 keeps only the tool yaw.</li>
+        <li>Next: optimize posture and part placement together, and treat local shielding of the tool drive as a design variable with its mass charged to the payload.</li>
+      </ul>
+    </section>
+  </div>
 </main>
 
 <footer>
-  <div class="concl">
-    <h2>결론</h2>
-    <ol>
-      <li>부품 선량을 줄이는 순서: <b>체류 시간·냉각·차폐</b> &gt; 부품 배치·체류 자세 &gt; 이동 경로</li>
-      <li>TCP 기준 평가는 최대 부품 선량을 1.7배 과대평가하고 자세·배치 개선을 볼 수 없음 → 부품 단위 평가 필요</li>
-      <li>베드 운전 조건, 교체 주기, 로봇 하중을 부품 선량 예산으로 함께 설계해야 함</li>
-    </ol>
-  </div>
-  <p class="note">Fig. 1~2는 가상 선원 기준 상대값. Fig. 3은 방출분율 1, 베드 자체차폐·빌드업 미포함 상한 추정. TID<sub>lim</sub> = 문헌 고장선량 / 2 (Zhang et al. 2020; Coloma et al. 2023). 카메라 위치는 B0 궤적 고정 민감도이며 시야 조건은 검토 전.</p>
+  <b>References</b> [1] Zhang et al., Front. Robot. AI 7:6 (2020). [2] Coloma et al., Nucl. Eng. Technol. 55, 4191-4203 (2023). [3] Kuffner and LaValle, ICRA 2000, 995-1001. [4] Pham and Pham, IEEE Trans. Robot. 34(3), 645-659 (2018). Code and data: github.com/Jaeeun-B/EPH_NE_26_fall (dose-aware-traj).
 </footer>
 </body>
 </html>
