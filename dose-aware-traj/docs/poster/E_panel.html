@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>E 파트 포스터 패널</title>
+<style>
+  /* 포스터 1/6 패널: A0 세로(841 × 1189 mm)를 2열 × 3행으로 나눈 크기 기준 */
+  @page { size: 420mm 396mm; margin: 0; }
+  :root {
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781; --rule: #c3c2b7;
+    --accent: #1c5cab; --tint: #f3f6fb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 420mm; height: 396mm; background: #fff; }
+  body {
+    font-family: "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    color: var(--ink); font-size: 15pt; line-height: 1.42; letter-spacing: -0.01em;
+    padding: 12mm 13mm 10mm;
+    display: grid; grid-template-rows: auto 1fr auto; gap: 6mm;
+  }
+  header { display: grid; grid-template-columns: auto 1fr; gap: 0 6mm; align-items: center;
+           border-bottom: 0.6mm solid var(--ink); padding-bottom: 4mm; }
+  .badge { width: 19mm; height: 19mm; border-radius: 2mm; background: var(--accent); color: #fff;
+           font-size: 34pt; font-weight: 700; display: grid; place-items: center; grid-row: span 2; }
+  h1 { font-size: 28pt; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { font-size: 14pt; color: var(--ink-2); }
+  .sub b { color: var(--ink); font-weight: 600; }
+  main { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 5mm 8mm; min-height: 0; }
+  h2 { font-size: 17pt; font-weight: 700; color: var(--accent); margin: 0 0 1.5mm; }
+  h2 + ul { margin-bottom: 3.5mm; }
+  ul { list-style: none; }
+  li { position: relative; padding-left: 4.2mm; margin-bottom: 1.2mm; }
+  li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 1.6mm; height: 1.6mm;
+               border-radius: 50%; background: var(--ink-2); }
+  .eq { font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-style: italic; font-size: 15.5pt; }
+  figure { display: flex; flex-direction: column; gap: 2mm; min-height: 0; }
+  figure img { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 13pt; line-height: 1.38; color: var(--ink-2); }
+  figcaption b { color: var(--ink); }
+  .key { color: var(--ink); font-weight: 600; }
+  footer { display: grid; grid-template-columns: 1fr; gap: 2.5mm; }
+  .concl { background: var(--tint); border-left: 1.4mm solid var(--accent); padding: 3.5mm 5mm; }
+  .concl h2 { margin-bottom: 1mm; }
+  .concl ol { list-style: none; counter-reset: c; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 6mm; }
+  .concl li { counter-increment: c; padding-left: 7mm; font-size: 14pt; }
+  .concl li::before { content: counter(c); background: var(--accent); color: #fff; width: 5.2mm; height: 5.2mm;
+                      font-size: 10pt; font-weight: 700; display: grid; place-items: center; top: 0.18em; }
+  .scene { display: grid; grid-template-columns: 50mm 1fr; gap: 4mm; align-items: end; margin-top: 1mm; }
+  .scene img { width: 50mm; height: auto; display: block; border-radius: 1mm; }
+  .scene p { font-size: 12.5pt; line-height: 1.38; color: var(--ink-2); }
+  .note { font-size: 10.5pt; color: var(--muted); line-height: 1.35; }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">E</div>
+  <h1>부품 단위 선량을 고려한 흡착베드 교체 궤적 최적화</h1>
+  <div class="sub">Dose-aware trajectory optimization for remote Xe bed exchange · <b>백재은</b> (경로계획 알고리즘 설계 및 시뮬레이션)</div>
+</header>
+
+<main>
+  <section>
+    <h2>목적</h2>
+    <ul>
+      <li>오프가스 Xe 흡착베드를 교체하는 원격 매니퓰레이터의 피폭을 <span class="key">TCP 한 점이 아닌 부품 10개 단위</span>로 평가 (관절 구동부 7, 공구 구동부, 손목 카메라, 베이스 커넥터)</li>
+      <li>경로, 작업 자세, 부품 배치 중 부품 선량을 실제로 줄이는 변수를 정량화</li>
+    </ul>
+    <h2>방법</h2>
+    <ul>
+      <li>PyBullet 핫셀 시뮬레이션 (KUKA iiwa 14), 교체 작업 S1~S6 (접근 → 커플링 해제 → 반출 → 장착 → 체결 → 복귀)</li>
+      <li>부품 선량 <span class="eq">D<sub>k</sub> = S<sub>k</sub> ∫ Ḋ(p<sub>k</sub>(q(t))) dt</span>, 가중합 <span class="eq">J = Σ D<sub>k</sub> / TID<sub>lim,k</sub></span></li>
+      <li><b>B0</b> RRT-Connect + TOPP-RA (시간 최소, 선박 경사 7조건 토크 제약)</li>
+      <li><b>B1</b> TCP 선량 가중 3D A* (경로 최적화)</li>
+      <li><b>P3</b> 체류 자세 최적화: 공구 회전 × 영공간 후보 약 450개 중 J 최소 자세 선택</li>
+    </ul>
+    <div class="scene">
+      <img src="scene_dwell.png" alt="핫셀 시뮬레이션 장면">
+      <p>S2 커플링 해제 체류 자세 (P3). 빨강 Bed A(교체 대상), 주황 Bed B(교체 중 운전), 초록 신규 베드, 상단 회색 관은 오프가스 배관</p>
+    </div>
+  </section>
+
+  <figure>
+    <img src="fig1_component_dose.svg" alt="부품별 누적선량">
+    <figcaption><b>Fig. 1</b> 부품별 누적선량 (B0, C09 = 1). TCP 값은 최대 부품(손목 카메라)의 <b>1.7배</b> → 점 로봇 가정으로는 부품 예산 판단 X. 선량의 <b>75%가 체류</b>, 22%가 베드 근처 직선, 경로계획 구간은 3%</figcaption>
+  </figure>
+
+  <figure>
+    <img src="fig2_levers.svg" alt="B0 대비 선량 변화">
+    <figcaption><b>Fig. 2</b> B0 대비 작업 전체 선량 변화. 경로 최적화는 J −0.6% (B0 시드 30개 대비 −0.4~−1.0%). 체류 자세 최적화는 J −2.2%, A4 구동부 −9.4%이지만 <b>TCP는 변화 없음</b> → 점 로봇 모델로는 보이지 않는 개선. 카메라 장착 위치만 바꿔도 C09 −66%</figcaption>
+  </figure>
+
+  <figure>
+    <img src="fig3_exchange.svg" alt="교체 모듈 질량과 로봇 허용 하중">
+    <figcaption><b>Fig. 3</b> Xe 베드 교체 모듈 질량 (MARINA 공개값 기반 상한). 무차폐 교체 1회 손목 카메라 약 3,200 Gy (허용 60 Gy) → 필요 차폐가 모듈 질량을 결정. 로봇 직접 교체는 <b>4개 조건을 모두 만족할 때만</b> 성립, 그 외에는 크레인 + 로봇 분업</figcaption>
+  </figure>
+</main>
+
+<footer>
+  <div class="concl">
+    <h2>결론</h2>
+    <ol>
+      <li>부품 선량을 줄이는 순서: <b>체류 시간·냉각·차폐</b> &gt; 부품 배치·체류 자세 &gt; 이동 경로</li>
+      <li>TCP 기준 평가는 최대 부품 선량을 1.7배 과대평가하고 자세·배치 개선을 볼 수 없음 → 부품 단위 평가 필요</li>
+      <li>베드 운전 조건, 교체 주기, 로봇 하중을 부품 선량 예산으로 함께 설계해야 함</li>
+    </ol>
+  </div>
+  <p class="note">Fig. 1~2는 가상 선원 기준 상대값. Fig. 3은 방출분율 1, 베드 자체차폐·빌드업 미포함 상한 추정. TID<sub>lim</sub> = 문헌 고장선량 / 2 (Zhang et al. 2020; Coloma et al. 2023). 카메라 위치는 B0 궤적 고정 민감도이며 시야 조건은 검토 전.</p>
+</footer>
+</body>
+</html>

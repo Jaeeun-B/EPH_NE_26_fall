@@ -162,9 +162,9 @@ class SolvedStep:
     line_path: np.ndarray | None = None
 
 
-def _ik_candidates(scene, pos, R, seeds):
+def _ik_candidates(scene, pos, R, seeds, yaw_offsets=(0.0, np.pi / 2, -np.pi / 2)):
     sols = []
-    for yaw_off in (0.0, np.pi / 2, -np.pi / 2):
+    for yaw_off in yaw_offsets:
         from .geometry import rot_z
         Rk = rot_z(yaw_off) @ R
         for s in seeds:
@@ -181,12 +181,19 @@ def _score(scene, q, q_prev, step):
     return 2.0 * margin + 1.0 * min(clear, 0.15) - 0.05 * np.linalg.norm(q - q_prev)
 
 
-def solve_chain(scene, task: dict | None = None, layout: dict | None = None, verbose: bool = True) -> list[SolvedStep]:
+def solve_chain(scene, task: dict | None = None, layout: dict | None = None, verbose: bool = True,
+                rank=None, yaw_offsets=(0.0, np.pi / 2, -np.pi / 2), extra_rests=()) -> list[SolvedStep]:
+    """웨이포인트 관절각을 푼다.
+
+    rank: None이면 기존 방식(관절 한계 여유·여유거리 점수, 상위 6개).
+          함수를 주면 계획 구간 목표 후보의 순서를 그 함수가 정한다 (P3 체류 자세 최적화, datraj/posture.py).
+    yaw_offsets, extra_rests: 목표 후보를 만들 때 쓰는 공구 회전각과 영공간 기준 자세 추가분.
+    """
     task = task or config.task_config()
     layout = layout or config.layout()
     wp = waypoints(layout, task)
     steps = task_steps()
-    rests = [np.asarray(r, float) for r in task["ik_rest_candidates"]]
+    rests = [np.asarray(r, float) for r in task["ik_rest_candidates"]] + [np.asarray(r, float) for r in extra_rests]
     q_home = np.asarray(task["home_q"], float)
 
     def solve_from(i, q_cur, R_cur):
@@ -220,11 +227,15 @@ def solve_chain(scene, task: dict | None = None, layout: dict | None = None, ver
                 cands = [(q_home, None)]
             else:
                 pos, R = wp[st.goal]
-                cands = _ik_candidates(scene, pos, R, [q_cur] + rests)
+                cands = _ik_candidates(scene, pos, R, [q_cur] + rests, yaw_offsets)
             free = make_is_free(scene, st)
             cands = [(q, Rk) for q, Rk in cands if free(q)]
-            cands.sort(key=lambda c: -_score(scene, c[0], q_cur, st))
-            cands = cands[:6]
+            ranked = rank(scene, i, steps, wp, cands, q_cur) if rank is not None else None
+            if ranked is None:
+                cands.sort(key=lambda c: -_score(scene, c[0], q_cur, st))
+                cands = cands[:6]
+            else:
+                cands = ranked
             last_err = f"{st.name}: 충돌 없는 IK 해 없음"
             for q_goal, Rk in cands:
                 rest, err = solve_from(i + 1, q_goal, Rk)

@@ -62,6 +62,8 @@ python scripts/00_check_env.py
 | `10_export_handoff.py` | 06 | `handoff/` 인계 파일 생성 |
 | `11_xe_bed_budget.py` | | Xe 이중베드: 교체 주기, 부품 예산, 필요 차폐, 모듈 질량 (MARINA 식 상한 선원) |
 | `12_heavy_robot_check.py` | `data/robots/` 모델 | KUKA KR 120/210/300 경사 포락선 허용 하중 |
+| `13_dwell_posture_opt.py` | 06 | P3 체류 자세 최적화. 후보 IK 때문에 약 5분 |
+| `14_poster_figures.py` | 06, 07, 11, 13 | 포스터 수치·그림 (`outputs/poster/`) |
 | `notebooks/demo_walkthrough.ipynb` | | 시연용 노트북. B0를 다시 계산해 `outputs/demo/`에 저장 (`outputs/b0`는 건드리지 않음) |
 
 `06`, `07`에 `--field grid --N 100`을 주면 격자 경로, 기본값 `--field model`은 해석식 경로입니다.
@@ -87,6 +89,14 @@ python scripts/00_check_env.py
 - 로봇이 모듈을 직접 드는 것은 0 °C·7 bar, 운전 베드 고정 차폐, 3~7일 냉각, 부품 매년 교체를 모두 갖출 때만 성립 (모듈 약 120~130 kg)
 - KR 120/210/300은 경사 조건 최원거리 자세에서 약 137~148 kg이 한계(A2)
 - 이 절대값은 ε = 1, 자체차폐·빌드업 없음의 상한이다. "가상 선원이라 절대값이 무의미하다"는 규칙은 06, 07 결과에 그대로 적용된다
+
+## 현재 결과 (2026-11-02 기준, P3 체류 자세 최적화, 가상 선원)
+
+`outputs/compare_b0_p3.csv`, `outputs/poster/poster_numbers.json`에서 확인하세요. 자세한 것은 `docs/2026-11-02_포스터_E파트.md`.
+
+- P3: B0 대비 가중합 J −2.2%, 부품 선량 합 −1.9%, A4 −9.4%, C09 −2.5%, TCP 0.0%. 작업시간·토크·여유거리는 B0와 같은 수준
+- C09가 거의 안 줄어드는 이유: 체류 중 공구 축과 베드 축이 일치하고 베드 선원이 축 대칭이라 공구 회전으로 손목 거리가 바뀌지 않음
+- C09 장착 위치를 공구 축 방향으로 10 cm, 20 cm 뒤로 옮기면 C09 −48%, −66% (B0 궤적 고정 민감도)
 
 ## 폴더 구조
 

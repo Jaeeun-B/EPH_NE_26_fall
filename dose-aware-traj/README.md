@@ -51,6 +51,8 @@ outputs/                결과 (생성물, git 제외)
 | `10_export_handoff.py` | 7. 파트 간 입출력 | `handoff/` 인계 파일 생성 |
 | `11_xe_bed_budget.py` | 1-3. 선량 모델, 7. 통합 | Xe 이중베드 교체 주기·부품 예산·필요 차폐·모듈 질량 (MARINA 식 상한 선원) |
 | `12_heavy_robot_check.py` | 1-4. 동역학 제약 | KUKA KR 120/210/300 경사 포락선 허용 하중 (모델은 `data/robots/`에 따로 받음) |
+| `13_dwell_posture_opt.py` | 4. 제안 알고리즘 P3 | 체류 자세 최적화 (공구 회전 + 영공간 후보 중 부품 선량 가중합 최소), B0 대비 비교표 |
+| `14_poster_figures.py` | 포스터 | 구간 종류별 부품 선량, 카메라 위치 민감도, 포스터 그림 3장 (`outputs/poster/`) |
 | `notebooks/demo_walkthrough.ipynb` | 시연용 | B0 실행 -> CSV 저장 -> 부품 선량 손계산 확인 -> 그림 -> Xe 베드 확장. VS Code에서 커널 `eph`로 실행, 결과는 `outputs/demo/` |
 
 `06`, `07`은 `--field grid --N 100`으로 격자 경로를, 기본값 `--field model`로 해석식 경로를 씁니다. 방사선 파트 격자는 [data/dose_grids/README.md](data/dose_grids/README.md) 방식으로 넣고 `--field grid --N 0`으로 실행합니다. 소재 파트가 채운 `component_inputs.xlsx`는 `config/`에 넣으면 투과율 S_k, TID_max, 차폐재 질량이 자동으로 반영됩니다.
@@ -89,6 +91,7 @@ outputs/                결과 (생성물, git 제외)
 |---|---|
 | [docs/2026-10-02_baseline_analysis.md](docs/2026-10-02_baseline_analysis.md) | B0·B1 기준선 분석 |
 | [docs/2026-10-06_진행공유.md](docs/2026-10-06_진행공유.md) | 팀 공유용 진행 상황과 파트별 요청값 |
+| [docs/2026-11-02_포스터_E파트.md](docs/2026-11-02_포스터_E파트.md) | 포스터 E 파트 패널 문안, P3 결과, 카메라 위치 민감도. 패널은 `docs/poster/E_panel.html` |
 | [docs/2026-10-11_방향정리.md](docs/2026-10-11_방향정리.md) | 10/11 회의용 자료. 10/6 회의 반영, 팀원별 주고받을 값, 픽스할 항목 |
 | [docs/2026-10-11_Xe베드_교체조건_분석.md](docs/2026-10-11_Xe베드_교체조건_분석.md) | Xe 이중베드 교체 주기, 차폐, 모듈 질량, 로봇 하중 |
 | [docs/invariants.md](docs/invariants.md) | 항상 성립해야 하는 물리·수치 조건 |
