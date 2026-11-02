@@ -55,7 +55,7 @@ outputs/                결과 (생성물, git 제외)
 | `14_poster_figures.py` | 포스터 | 구간 종류별 부품 선량, 포스터 그림 3장(영문)과 장면 그림, 그림 데이터 xlsx/CSV (`outputs/poster/`) |
 | `15_camera_placement.py` | 4. 제안 알고리즘, 부품 배치 | 손목 카메라 장착 위치 탐색 (장착·충돌·시야 제약, 궤적 고정), 제약 가정 민감도 |
 | `16_design_to_shield.py` | 1-3. 선량 모델, 7. 통합 | 설계 방식별(TCP 기준, 부품 기준, 카메라 배치) 필요 차폐·모듈 질량·로봇별 최대 교체 간격 |
-| `notebooks/demo_walkthrough.ipynb` | 시연용 | B0 실행 -> CSV 저장 -> 부품 선량 손계산 확인 -> 그림 -> Xe 베드 확장. VS Code에서 커널 `eph`로 실행, 결과는 `outputs/demo/` |
+| `notebooks/demo_walkthrough.ipynb` | 시연용 | PyBullet 장면 -> B0 실행 -> CSV 저장 -> 부품 선량 손계산 확인 -> PyBullet 재생(단계별 스냅샷, GIF, GUI 창) -> 그림 -> Xe 베드 확장. VS Code에서 커널 `eph`로 실행, 결과는 `outputs/demo/` |
 
 `06`, `07`은 `--field grid --N 100`으로 격자 경로를, 기본값 `--field model`로 해석식 경로를 씁니다. 방사선 파트 격자는 [data/dose_grids/README.md](data/dose_grids/README.md) 방식으로 넣고 `--field grid --N 0`으로 실행합니다. 소재 파트가 채운 `component_inputs.xlsx`는 `config/`에 넣으면 투과율 S_k, TID_max, 차폐재 질량이 자동으로 반영됩니다.
 
@@ -93,7 +93,7 @@ outputs/                결과 (생성물, git 제외)
 |---|---|
 | [docs/2026-10-02_baseline_analysis.md](docs/2026-10-02_baseline_analysis.md) | B0·B1 기준선 분석 |
 | [docs/2026-10-06_진행공유.md](docs/2026-10-06_진행공유.md) | 팀 공유용 진행 상황과 파트별 요청값 |
-| [docs/2026-11-02_포스터_E파트.md](docs/2026-11-02_포스터_E파트.md) | 포스터 E 파트: P3, 카메라 장착 위치, 설계 방식별 모듈 질량, 정정 사항. 패널 `docs/poster/E_panel.html`(영문), 문안 `docs/poster/E_panel_text.md`, Numbers 안내 `docs/poster/numbers_guide.md` |
+| [docs/2026-11-02_포스터_E파트.md](docs/2026-11-02_포스터_E파트.md) | 포스터 E 파트: P3, 카메라 장착 위치, 설계 방식별 모듈 질량, 정정 사항. 패널 `docs/poster/E_panel.html`(영문), 문안 `docs/poster/E_panel_text.md`, 그림 `docs/poster/fig*.png` |
 | [docs/2026-10-11_방향정리.md](docs/2026-10-11_방향정리.md) | 10/11 회의용 자료. 10/6 회의 반영, 팀원별 주고받을 값, 픽스할 항목 |
 | [docs/2026-10-11_Xe베드_교체조건_분석.md](docs/2026-10-11_Xe베드_교체조건_분석.md) | Xe 이중베드 교체 주기, 차폐, 모듈 질량, 로봇 하중 |
 | [docs/invariants.md](docs/invariants.md) | 항상 성립해야 하는 물리·수치 조건 |

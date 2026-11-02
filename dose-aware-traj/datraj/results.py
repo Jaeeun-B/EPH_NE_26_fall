@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import config
+from . import OUTPUTS, config
 from .components import Component, budgets
 from .dose_eval import ComponentDoseEvaluator
 from .geometry import ship_gravity
@@ -189,6 +189,16 @@ def save(E: Evaluation, segments, comps, out_dir: Path, tag: str) -> None:
                        f"{c.S:.4f}", "" if math.isnan(c.tid_max) else c.tid_max, f"{np.max(E.rates[:, k]):.4e}"])
     with open(out_dir / f"summary_{tag}.json", "w", encoding="utf-8") as f:
         json.dump(E.summary, f, ensure_ascii=False, indent=2)
+
+
+def load_traj(tag: str):
+    """save()가 쓴 outputs/<tag>/traj_<tag>.csv에서 (t [s], 구간 번호, q [rad]) 읽기."""
+    with open(OUTPUTS / tag / f"traj_{tag}.csv", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    t = np.array([float(r["t"]) for r in rows])
+    seg = np.array([int(r["segment"]) for r in rows])
+    q = np.array([[float(r[f"q_A{j}"]) for j in range(1, 8)] for r in rows])
+    return t, seg, q
 
 
 def print_summary(E: Evaluation, comps) -> None:

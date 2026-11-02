@@ -94,12 +94,12 @@
   <!-- Column 2: Fig. 1, Fig. 2 -->
   <div class="col">
     <figure>
-      <img src="fig1_component_dose.svg" alt="Cumulative dose per part">
+      <img src="fig1_component_dose.png" alt="Cumulative dose per part">
       <figcaption><b>Fig. 1</b> Dose per part over one exchange (B0, virtual source, wrist camera C09 = 1). The TCP value is <b>1.70 times</b> the most exposed part, so a point model misstates every part budget. <b>75%</b> of the summed part dose comes from dwelling (60 s unlock and 60 s lock), 22% from slow straight moves near the beds and only <b>3%</b> from planned transfers, the only share a path planner can change.</figcaption>
     </figure>
     <figure>
-      <img src="fig2_levers.svg" alt="Dose change per lever">
-      <figcaption><b>Fig. 2</b> Dose change against B0. Path optimization: J −0.6% (summed part dose −0.4 to −1.0% against 30 B0 seeds). Dwell posture: J −2.2% and A4 drive −9.4%, while the <b>TCP dose does not change</b>, so a point model cannot see this gain. Moving the camera to the best mountable spot (A4-link bracket, 0.5 m from the tool tip) cuts camera dose by <b>81%</b> (72 to 81% under the alternative constraints in the error bar) on the same trajectory. Shifting it 10 to 20 cm back along the tool axis would look similar on paper but places it inside the wrist.</figcaption>
+      <img src="fig2_levers.png" alt="Dose change per lever">
+      <figcaption><b>Fig. 2</b> Dose change against B0. Path optimization: J −0.6% (summed part dose −0.4 to −1.0% against 30 B0 seeds). Dwell posture: J −2.2% and A4 drive −9.4%, while the <b>TCP dose does not change</b>, so a point model cannot see this gain. Moving the camera to the best mountable spot (A4-link bracket, 0.5 m from the tool tip) cuts camera dose by <b>81%</b> (72 to 81% under alternative mount constraints) on the same trajectory. Shifting it 10 to 20 cm back along the tool axis would look similar on paper but places it inside the wrist.</figcaption>
     </figure>
     <section>
       <h2>Why posture cannot protect the camera</h2>
@@ -114,7 +114,7 @@
   <!-- Column 3: Fig. 3, conclusions, limitations -->
   <div class="col">
     <figure>
-      <img src="fig3_exchange.svg" alt="Exchange module mass vs exchange interval">
+      <img src="fig3_exchange.png" alt="Exchange module mass vs exchange interval">
       <figcaption><b>Fig. 3</b> Exchange module mass vs. exchange interval (sorbent at 0 °C and 7 bar, fixed wall on the online bed, 3-day cooling, robot parts replaced yearly, W shield, upper-bound source). Sizing the shield on the TCP dose inflates the limiting part by <b>1.83 times</b>. With the same KR 120, the longest interval grows from <b>5.3 days</b> (point model) to <b>7.1 days</b> (part level) and <b>9.8 days</b> (part level with camera mount): 69, 51 and 37 exchanges per year. Posture (P3) leaves the shield unchanged because the limiting parts, camera and then tool drive, sit on the tool axis.</figcaption>
     </figure>
     <div class="box">

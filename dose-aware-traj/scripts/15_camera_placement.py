@@ -29,6 +29,7 @@ import _bootstrap  # noqa: F401
 from datraj import OUTPUTS
 from datraj.components import load as load_components
 from datraj.dose_eval import build_fields
+from datraj.results import load_traj
 from datraj.scene import Scene
 from datraj.task import apply_state, task_steps
 
@@ -46,15 +47,6 @@ STRIDE = 10            # 작업 전체 충돌 검사에서 궤적 행 간격 (�
 CHUNK = 300
 SENS = [(0.5, 0.12, 3), (0.4, 0.12, 3), (0.3, 0.12, 3), (0.5, 0.06, 3), (0.5, 0.12, 5)]  # 민감도 조합
 MAX_TRY = 3000         # 링크마다 선량이 작은 순으로 제약을 확인할 최대 후보 수
-
-
-def load_traj(tag):
-    with open(OUTPUTS / tag / f"traj_{tag}.csv", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    t = np.array([float(r["t"]) for r in rows])
-    seg = np.array([int(r["segment"]) for r in rows])
-    q = np.array([[float(r[f"q_A{j}"]) for j in range(1, 8)] for r in rows])
-    return t, seg, q
 
 
 class Placement:

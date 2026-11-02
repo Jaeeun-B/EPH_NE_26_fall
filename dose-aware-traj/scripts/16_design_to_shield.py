@@ -29,6 +29,7 @@ from datraj import OUTPUTS, config
 from datraj import xe_bed as X
 from datraj.components import load as load_components
 from datraj.dose_eval import ComponentDoseEvaluator, build_fields
+from datraj.results import load_traj
 from datraj.scene import Scene
 from datraj.task import task_steps
 
@@ -36,15 +37,6 @@ xe11 = importlib.import_module("11_xe_bed_budget")   # 파일명이 숫자로 �
 DAY = 86400.0
 KEY = {"condition": "0 °C, 7 bar", "B_fixed_shield": True, "t_c_d": 3, "material": "W"}   # 10/11 분석의 성립 조건
 TON_FINE = [float(x) for x in np.arange(3.25, 30.001, 0.25)]   # 대표 조건에서 교체 간격을 0.25일 간격으로 [일] (그림·표가 등간격)
-
-
-def load_traj(tag):
-    with open(OUTPUTS / tag / f"traj_{tag}.csv", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    t = np.array([float(r["t"]) for r in rows])
-    seg = np.array([int(r["segment"]) for r in rows])
-    q = np.array([[float(r[f"q_A{j}"]) for j in range(1, 8)] for r in rows])
-    return t, seg, q
 
 
 def unit_doses(scene, comps, tag):

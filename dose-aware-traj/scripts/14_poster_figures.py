@@ -24,21 +24,13 @@ import _bootstrap  # noqa: F401
 from datraj import OUTPUTS, ROOT, viz_style
 from datraj.components import load as load_components
 from datraj.dose_eval import ComponentDoseEvaluator, build_fields
+from datraj.results import load_traj
 from datraj.scene import Scene
 from datraj.task import apply_state, task_steps
 
 OUT = OUTPUTS / "poster"
 KINDS = [("dwell", "Dwell (unlock, lock, grasp)"), ("line", "Near-bed moves (5 cm/s)"),
          ("plan", "Planned transfers")]
-
-
-def load_traj(tag):
-    with open(OUTPUTS / tag / f"traj_{tag}.csv", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    t = np.array([float(r["t"]) for r in rows])
-    seg = np.array([int(r["segment"]) for r in rows])
-    q = np.array([[float(r[f"q_A{j}"]) for j in range(1, 8)] for r in rows])
-    return t, seg, q
 
 
 def per_segment_dose(scene, comps, fields, tag):

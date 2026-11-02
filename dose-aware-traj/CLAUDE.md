@@ -66,7 +66,7 @@ python scripts/00_check_env.py
 | `14_poster_figures.py` | 06, 07, 11, 13, 15, 16 | 포스터 수치·그림(영문)·장면, 그림 데이터 xlsx/CSV (`outputs/poster/`) |
 | `15_camera_placement.py` | 06, 13 | 손목 카메라 장착 위치 탐색 (장착·충돌·시야 제약, 궤적 고정). 약 3분 |
 | `16_design_to_shield.py` | 06, 11, 13, 15 | 설계 방식별 필요 차폐·모듈 질량·로봇별 최대 교체 간격 (11의 `scenario_rows` 재사용) |
-| `notebooks/demo_walkthrough.ipynb` | | 시연용 노트북. B0를 다시 계산해 `outputs/demo/`에 저장 (`outputs/b0`는 건드리지 않음) |
+| `notebooks/demo_walkthrough.ipynb` | | 시연용 노트북. B0를 다시 계산해 `outputs/demo/`에 저장하고 PyBullet으로 재생 (GUI 창은 별도 프로세스, `outputs/b0`는 건드리지 않음) |
 
 `06`, `07`에 `--field grid --N 100`을 주면 격자 경로, 기본값 `--field model`은 해석식 경로입니다.
 
